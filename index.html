@@ -4,356 +4,294 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Списание расходников</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
     body {
-      background-color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--tg-theme-bg-color, #f4f4f5);
+      color: var(--tg-theme-text-color, #000000);
       margin: 0;
       padding: 16px;
-      color: #1e293b;
+      display: flex;
+      justify-content: center;
     }
 
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
+    .container {
+      background: var(--tg-theme-secondary-bg-color, #ffffff);
       padding: 20px;
-      max-width: 480px;
-      margin: 0 auto;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
     }
 
     h2 {
       margin-top: 0;
+      margin-bottom: 20px;
       font-size: 20px;
-      color: #0f172a;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     label {
       display: block;
       font-size: 13px;
-      font-weight: 600;
-      color: #475569;
-      margin-bottom: 4px;
+      color: #666;
+      margin-bottom: 6px;
     }
 
     input, select {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 14px;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      box-sizing: border-box;
       outline: none;
+      background: #fff;
       transition: border-color 0.2s;
     }
 
     input:focus, select:focus {
-      border-color: #3b82f6;
+      border-color: #2481cc;
     }
 
-    .btn-add {
+    .btn-secondary {
       width: 100%;
       padding: 12px;
-      background-color: #475569;
-      color: white;
-      border: none;
-      border-radius: 8px;
+      background-color: #f0f4f8;
+      color: #2481cc;
+      border: 1px dashed #2481cc;
+      border-radius: 10px;
+      font-size: 15px;
       font-weight: 600;
-      font-size: 14px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      margin-top: 8px;
     }
 
-    .btn-add:hover {
-      background-color: #334155;
+    .btn-secondary:active {
+      background-color: #e1ebf5;
     }
 
-    .btn-submit {
+    .btn-main {
       width: 100%;
       padding: 14px;
-      background-color: #2563eb;
-      color: white;
+      background-color: #2481cc;
+      color: #ffffff;
       border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 700;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      margin-top: 15px;
-      transition: background-color 0.2s;
+      margin-top: 20px;
     }
 
-    .btn-submit:hover {
-      background-color: #1d4ed8;
+    .btn-main:disabled {
+      background-color: #a0c7e6;
     }
 
-    .btn-submit:disabled {
-      background-color: #94a3b8;
-      cursor: not-allowed;
-    }
-
-    hr {
-      margin: 20px 0;
-      border: 0;
-      border-top: 1px solid #e2e8f0;
-    }
-
-    .cart-section {
+    .cart-container {
+      margin-top: 20px;
+      border-top: 1px solid #eee;
+      padding-top: 16px;
       display: none;
     }
 
-    .cart-header {
-      font-size: 15px;
+    .cart-title {
+      font-size: 14px;
       font-weight: 600;
       margin-bottom: 10px;
-      color: #1e293b;
-    }
-
-    .cart-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      color: #444;
     }
 
     .cart-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      padding: 10px 12px;
+      background: #f9f9f9;
+      padding: 8px 12px;
       border-radius: 8px;
-    }
-
-    .cart-item-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .cart-item-title {
-      font-weight: 600;
+      margin-bottom: 8px;
       font-size: 14px;
-      color: #0f172a;
     }
 
-    .cart-item-sub {
-      font-size: 12px;
-      color: #64748b;
-    }
-
-    .btn-remove {
-      background: transparent;
-      border: none;
-      color: #ef4444;
-      font-size: 18px;
+    .cart-item-del {
+      color: #e53935;
       cursor: pointer;
+      font-weight: bold;
       padding: 4px 8px;
-      border-radius: 4px;
-    }
-
-    .btn-remove:hover {
-      background-color: #fee2e2;
     }
 
     .status-msg {
-      margin-top: 15px;
-      font-weight: 600;
-      font-size: 14px;
+      margin-top: 12px;
       text-align: center;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>🧪 Форма списания</h2>
+<div class="container">
+  <h2>🧪 Форма списания</h2>
 
-    <!-- Категория -->
-    <div class="form-group">
-      <label for="category">Категория</label>
-      <select id="category" onchange="onCategoryChange()">
-        <option value="chemistry">🥼 Химия</option>
-        <option value="precursors">🧪 Прекурсоры</option>
-      </select>
-    </div>
-
-    <!-- Название позиции -->
-    <div class="form-group">
-      <label for="item">Позиция</label>
-      <input type="text" id="item" placeholder="Начните вводить название..." list="itemsList">
-      <datalist id="itemsList"></datalist>
-    </div>
-
-    <!-- Компания (только для прекурсоров) -->
-    <div class="form-group" id="companyGroup" style="display: none;">
-      <label for="company">Компания</label>
-      <input type="text" id="company" placeholder="Название компании">
-    </div>
-
-    <!-- Количество -->
-    <div class="form-group">
-      <label for="quantity">Количество</label>
-      <input type="number" id="quantity" min="1" value="1">
-    </div>
-
-    <!-- Кнопка добавления в список -->
-    <button type="button" class="btn-add" onclick="addToCart()">➕ Добавить в список</button>
-
-    <!-- Разделитель и Корзина -->
-    <div id="cartSection" class="cart-section">
-      <hr>
-      <div class="cart-header">📦 Список к списанию (<span id="cartCount">0</span>):</div>
-      <div id="cartList" class="cart-list"></div>
-
-      <button type="button" id="submitBtn" class="btn-submit" onclick="submitBatch()">
-        🚀 Отправить всё списание
-      </button>
-    </div>
-
-    <div id="statusMessage" class="status-msg"></div>
+  <div class="form-group">
+    <label for="category">Категория</label>
+    <select id="category" onchange="loadItems()">
+      <option value="chemistry">🧪 Химия</option>
+      <option value="precursors">⚗️ Прекурсоры</option>
+    </select>
   </div>
 
-  <script>
-    // ⚠️ Вставьте ваш актуальный URL развертывания Web App из Google Apps Script
-    const WEB_APP_URL = "ВАШ_WEB_APP_URL_ИЗ_APPS_SCRIPT";
+  <div class="form-group">
+    <label for="item">Позиция (начните вводить название)</label>
+    <input type="text" id="item" placeholder="Выберите из списка..." list="itemsList">
+    <datalist id="itemsList"></datalist>
+  </div>
 
-    // Глобальный массив корзины
-    let cart = [];
+  <div class="form-group">
+    <label for="quantity">Количество</label>
+    <input type="number" id="quantity" value="1" min="1">
+  </div>
 
-    // Переключение категории (скрывает/показывает поле компании)
-    function onCategoryChange() {
-      const category = document.getElementById('category').value;
-      const companyGroup = document.getElementById('companyGroup');
-      companyGroup.style.display = (category === 'precursors') ? 'block' : 'none';
-    }
+  <button type="button" class="btn-secondary" onclick="addToCart()">➕ Добавить ещё позицию</button>
 
-    // Добавление позиций в локальную корзину
-    function addToCart() {
-      const category = document.getElementById('category').value;
-      const itemInput = document.getElementById('item');
-      const quantityInput = document.getElementById('quantity');
-      const companyInput = document.getElementById('company');
+  <div id="cartContainer" class="cart-container">
+    <div class="cart-title">Выбрано к списанию:</div>
+    <div id="cartList"></div>
+  </div>
 
-      const item = itemInput.value.trim();
-      const quantity = parseInt(quantityInput.value, 10);
-      const company = companyInput.value.trim();
+  <button type="button" id="submitBtn" class="btn-main" onclick="submitData()">Отправить расход</button>
+  <div id="status" class="status-msg"></div>
+</div>
 
-      if (!item) {
-        alert("Пожалуйста, введите название позиции!");
-        return;
-      }
-      if (isNaN(quantity) || quantity <= 0) {
-        alert("Введите корректное количество!");
-        return;
-      }
+<script>
+  const tg = window.Telegram?.WebApp;
+  if (tg) tg.expand();
 
-      // Сохраняем элемент
-      cart.push({
-        category: category,
-        item: item,
-        quantity: quantity,
-        company: (category === 'precursors') ? company : ''
+  // ⚠️ Укажи здесь URL твоего развернутого Apps Script
+  const SCRIPT_URL = "ТВОЙ_WEB_APP_URL";
+
+  let cart = [];
+
+  // Автозагрузка списка реактивов при старте и смене категории
+  async function loadItems() {
+    const category = document.getElementById('category').value;
+    const datalist = document.getElementById('itemsList');
+    datalist.innerHTML = '';
+
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=getItems&category=${category}`);
+      const items = await res.json();
+      items.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        datalist.appendChild(opt);
       });
+    } catch (e) {
+      console.log("Ошибка загрузки списка реактивов:", e);
+    }
+  }
 
-      // Сбрасываем поля для удобства следующего ввода
-      itemInput.value = '';
-      quantityInput.value = '1';
-      companyInput.value = '';
+  function addToCart() {
+    const category = document.getElementById('category').value;
+    const itemInput = document.getElementById('item');
+    const qtyInput = document.getElementById('quantity');
 
-      renderCart();
+    const item = itemInput.value.trim();
+    const quantity = parseInt(qtyInput.value, 10);
+
+    if (!item || isNaN(quantity) || quantity <= 0) {
+      alert("Заполните название позиции и количество");
+      return;
     }
 
-    // Удаление элемента из списка
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      renderCart();
+    cart.push({ category, item, quantity });
+    itemInput.value = '';
+    qtyInput.value = '1';
+
+    renderCart();
+  }
+
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    renderCart();
+  }
+
+  function renderCart() {
+    const container = document.getElementById('cartContainer');
+    const list = document.getElementById('cartList');
+
+    if (cart.length === 0) {
+      container.style.display = 'none';
+      return;
     }
 
-    // Отрисовка элементов корзины
-    function renderCart() {
-      const cartSection = document.getElementById('cartSection');
-      const cartList = document.getElementById('cartList');
-      const cartCount = document.getElementById('cartCount');
+    container.style.display = 'block';
+    list.innerHTML = cart.map((el, i) => `
+      <div class="cart-item">
+        <span><b>${el.item}</b> — ${el.quantity} шт.</span>
+        <span class="cart-item-del" onclick="removeFromCart(${i})">✕</span>
+      </div>
+    `).join('');
+  }
 
-      if (cart.length === 0) {
-        cartSection.style.display = 'none';
-        return;
-      }
+  async function submitData() {
+    const itemInput = document.getElementById('item').value.trim();
+    const qtyInput = parseInt(document.getElementById('quantity').value, 10);
+    const category = document.getElementById('category').value;
 
-      cartSection.style.display = 'block';
-      cartCount.textContent = cart.length;
-      cartList.innerHTML = '';
-
-      cart.forEach((el, idx) => {
-        const categoryBadge = el.category === 'precursors' ? '🧪 Прекурсор' : '🥼 Химия';
-        const companyText = el.company ? ` (${el.company})` : '';
-
-        const div = document.createElement('div');
-        div.className = 'cart-item';
-        div.innerHTML = `
-          <div class="cart-item-info">
-            <span class="cart-item-title">${el.item} — <b>${el.quantity} шт.</b></span>
-            <span class="cart-item-sub">${categoryBadge}${companyText}</span>
-          </div>
-          <button type="button" class="btn-remove" onclick="removeFromCart(${idx})" title="Удалить">❌</button>
-        `;
-        cartList.appendChild(div);
-      });
+    // Если в форме осталась введенная позиция, но её еще не нажали "Добавить" — добавим автоматически
+    if (cart.length === 0 && itemInput) {
+      cart.push({ category, item: itemInput, quantity: qtyInput });
     }
 
-    // Массовая отправка списка в Apps Script
-    function submitBatch() {
-      if (cart.length === 0) return;
+    if (cart.length === 0) {
+      alert("Выберите хотя бы один реактив!");
+      return;
+    }
 
-      const submitBtn = document.getElementById('submitBtn');
-      const statusMsg = document.getElementById('statusMessage');
+    const btn = document.getElementById('submitBtn');
+    const status = document.getElementById('status');
+    btn.disabled = true;
+    btn.textContent = "Отправка...";
 
-      submitBtn.disabled = true;
-      submitBtn.textContent = "⏳ Сохранение и отправка...";
-      statusMsg.textContent = "";
+    const user = tg?.initDataUnsafe?.user;
+    const payload = {
+      tgUser: user ? `${user.first_name} ${user.last_name || ''}`.trim() : "Лаборант",
+      items: cart
+    };
 
-      // Собираем данные (проверьте переменные профиля пользователя, если они есть у вас в скрипте)
-      const payload = {
-        user: (typeof currentUserFio !== 'undefined') ? currentUserFio : "Лазикян Екатерина Ашотовна",
-        lab: (typeof currentLab !== 'undefined') ? currentLab : "308",
-        items: cart
-      };
-
-      fetch(WEB_APP_URL, {
+    try {
+      await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Текстовый заголовок избавляет от проблем CORS в Apps Script
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          statusMsg.style.color = "#16a34a";
-          statusMsg.textContent = "✅ Все списания успешно внесены!";
-          cart = [];
-          renderCart();
-        } else {
-          throw new Error(data.error || "Ошибка сервера");
-        }
-      })
-      .catch(err => {
-        statusMsg.style.color = "#dc2626";
-        statusMsg.textContent = "❌ Ошибка отправки: " + err.message;
-      })
-      .finally(() => {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "🚀 Отправить всё списание";
       });
+
+      status.style.color = "green";
+      status.textContent = "Успешно списано!";
+      cart = [];
+      renderCart();
+      document.getElementById('item').value = '';
+      if (tg) setTimeout(() => tg.close(), 1500);
+    } catch (e) {
+      status.style.color = "red";
+      status.textContent = "Ошибка при отправке";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Отправить расход";
     }
-  </script>
+  }
+
+  // Первый запуск подгрузки при открытии
+  loadItems();
+</script>
+
 </body>
 </html>
