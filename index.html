@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Учет Расходников</title>
+  <!-- Подключаем скрипт Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: var(--tg-theme-bg-color, #f4f4f5);
+      --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+      --text-color: var(--tg-theme-text-color, #1c1c1e);
+      --hint-color: var(--tg-theme-hint-color, #8e8e93);
+      --button-color: var(--tg-theme-button-color, #007aff);
+      --button-text: var(--tg-theme-button-text-color, #ffffff);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: var(--text-color);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--hint-color);
+      margin-bottom: 4px;
+      margin-top: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d1d6;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+      background: var(--card-bg);
+      color: var(--text-color);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 6px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
+      color: var(--text-color);
+      cursor: pointer;
+    }
+
+    .radio-label input {
+      width: auto;
+    }
+
+    .btn {
+      width: 100%;
+      background-color: var(--button-color);
+      color: var(--button-text);
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      transition: opacity 0.2s;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #status {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Блок 1: Профиль пользователя -->
+  <div class="card" id="profile-card">
+    <h2>👤 Профиль сотрудника</h2>
+    
+    <label for="fio">ФИО (реальноеИмя)</label>
+    <input type="text" id="fio" placeholder="Иванов Иван Иванович">
+
+    <label for="lab">Лаборатория №</label>
+    <input type="text" id="lab" placeholder="Например: 102">
+
+    <label>Организация / Оформление:</label>
+    <div class="radio-group">
+      <label class="radio-label">
+        <input type="radio" name="company" value="ООО" checked> ООО
+      </label>
+      <label class="radio-label">
+        <input type="radio" name="company" value="НПФ"> НПФ
+      </label>
+    </div>
+
+    <button class="btn" id="save-profile-btn" onclick="saveProfile()">Сохранить данные</button>
+  </div>
+
+  <!-- Блок 2: Форма списания -->
+  <div class="card hidden" id="form-card">
+    <h2>🧪 Форма списания</h2>
+
+    <label for="category">Категория</label>
+    <select id="category" onchange="loadItems()">
+      <option value="" disabled selected>-- Выберите категорию --</option>
+      <option value="precursors">Прекурсоры</option>
+      <option value="chemistry">Химия</option>
+    </select>
+
+    <div id="items-wrapper" class="hidden">
+      <label for="item">Позиция (столбец M)</label>
+      <select id="item">
+        <option value="">Загрузка списка...</option>
+      </select>
+
+      <label for="quantity">Количество</label>
+      <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
+
+      <button class="btn" id="submit-btn" onclick="submitForm()">Отправить расход</button>
+    </div>
+
+    <button style="background: none; border: none; color: var(--hint-color); width: 100%; margin-top: 15px; font-size: 12px; cursor: pointer;" onclick="editProfile()">⚙️ Изменить профиль</button>
+  </div>
+
+  <div id="status"></div>
+
+  <script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbz37y6rgMd43X8DencmoUE0rFkqK0yTf1EIL_dKQESHAB0zup5Z7D8jrS3b0pu_HLa1mw/exec";
+    const tg = window.Telegram?.WebApp;
+
+    if (tg) {
+      tg.expand(); // Разворачиваем шторку Mini App на весь экран
+    }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedFio = localStorage.getItem("lab_fio");
+      const savedLab = localStorage.getItem("lab_num");
+      const savedCompany = localStorage.getItem("lab_company");
+
+      if (savedFio && savedLab) {
+        document.getElementById("fio").value = savedFio;
+        document.getElementById("lab").value = savedLab;
+        if (savedCompany) {
+          document.querySelector(`input[name="company"][value="${savedCompany}"]`).checked = true;
+        }
+        showForm();
+      }
+    });
+
+    function saveProfile() {
+      const fio = document.getElementById("fio").value.trim();
+      const lab = document.getElementById("lab").value.trim();
+      const company = document.querySelector('input[name="company"]:checked').value;
+
+      if (!fio || !lab) {
+        alert("Пожалуйста, заполните ФИО и номер лаборатории!");
+        return;
+      }
+
+      localStorage.setItem("lab_fio", fio);
+      localStorage.setItem("lab_num", lab);
+      localStorage.setItem("lab_company", company);
+
+      showForm();
+    }
+
+    function editProfile() {
+      document.getElementById("profile-card").classList.remove("hidden");
+      document.getElementById("form-card").classList.add("hidden");
+    }
+
+    function showForm() {
+      document.getElementById("profile-card").classList.add("hidden");
+      document.getElementById("form-card").classList.remove("hidden");
+    }
+
+    // Загрузка доступных позиций из столбца M
+    async function loadItems() {
+      const category = document.getElementById("category").value;
+      const itemsWrapper = document.getElementById("items-wrapper");
+      const itemSelect = document.getElementById("item");
+      const status = document.getElementById("status");
+
+      if (!category) return;
+
+      itemsWrapper.classList.remove("hidden");
+      itemSelect.innerHTML = "<option>⌛ Загрузка из таблицы...</option>";
+      itemSelect.disabled = true;
+
+      try {
+        const response = await fetch(`${BACKEND_URL}?type=${category}`);
+        const data = await response.json();
+
+        if (data.success && data.items) {
+          itemSelect.innerHTML = '<option value="" disabled selected>-- Выберите позицию --</option>';
+          data.items.forEach(item => {
+            const opt = document.createElement("option");
+            opt.value = item;
+            opt.textContent = item;
+            itemSelect.appendChild(opt);
+          });
+          itemSelect.disabled = false;
+        } else {
+          itemSelect.innerHTML = "<option>Ошибка загрузки списка</option>";
+          status.innerText = " Ошибка: " + (data.error || "Неизвестная ошибка");
+        }
+      } catch (err) {
+        itemSelect.innerHTML = "<option>Ошибка сети</option>";
+        status.innerText = "❌ Ошибка подключения к серверу";
+      }
+    }
+
+    // Отправка формы на бэкенд
+    async function submitForm() {
+      const category = document.getElementById("category").value;
+      const item = document.getElementById("item").value;
+      const quantity = document.getElementById("quantity").value.trim();
+      const submitBtn = document.getElementById("submit-btn");
+      const status = document.getElementById("status");
+
+      if (!category || !item || !quantity) {
+        alert("Заполните все поля (категорию, позицию и количество)!");
+        return;
+      }
+
+      const payload = {
+        fio: localStorage.getItem("lab_fio"),
+        lab: localStorage.getItem("lab_num"),
+        company: localStorage.getItem("lab_company"),
+        category: category,
+        item: item,
+        quantity: quantity
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Отправка...";
+      status.innerText = "⏳ Запись в таблицу...";
+
+      try {
+        const response = await fetch(BACKEND_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+
+        const resData = await response.json();
+
+        if (resData.success) {
+          status.innerText = " Успешно записано в «Расход»!";
+          document.getElementById("quantity").value = "";
+          document.getElementById("item").value = "";
+          setTimeout(() => { status.innerText = ""; }, 4000);
+        } else {
+          status.innerText = "❌ Ошибка записи: " + resData.error;
+        }
+      } catch (err) {
+        status.innerText = "❌ Ошибка отправки данных";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "Отправить расход";
+      }
+    }
+  </script>
+</body>
+</html>
