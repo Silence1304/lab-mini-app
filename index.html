@@ -150,7 +150,7 @@
 </head>
 <body>
 
-  <!-- Блок 1: Профиль пользователя -->
+  <!-- Блок 1: Профиль сотрудника -->
   <div class="card" id="profile-card">
     <h2>👤 Профиль сотрудника</h2>
     
@@ -186,25 +186,14 @@
 
     <div id="items-wrapper" class="hidden">
       <label for="item-input">Позиция (начните вводить название)</label>
-      <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off">
+      <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off" oninput="checkStock()">
       <datalist id="items-list"></datalist>
 
-    <div id="items-wrapper" class="hidden">
-  <label for="item-input">Позиция (начните вводить название)</label>
-  <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off" oninput="checkStock()">
-  <datalist id="items-list"></datalist>
-
-  <!-- Сюда выводим остаток -->
-  <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 4px; margin-bottom: 8px;"></div>
-
-  <label for="quantity">Количество</label>
-  <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
-
-  <button class="btn btn-secondary" id="add-to-cart-btn" onclick="addToCart()">➕ Добавить в корзину</button>
-  </div>
+      <!-- Инфо об остатке -->
+      <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 4px; margin-bottom: 8px;"></div>
 
       <label for="quantity">Количество</label>
-      <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
+      <input type="number" id="quantity" min="1" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Введите целое число" oninput="validateQuantity()">
 
       <button class="btn btn-secondary" id="add-to-cart-btn" onclick="addToCart()">➕ Добавить в корзину</button>
     </div>
@@ -230,9 +219,10 @@
     if (tg) {
       tg.expand();
     }
-    
-    let currentCategoryItems = []; // Глобальный список для текущей категории
-    let cart = []; // Массив для хранения выбранных позиций
+
+    let cart = [];                    // Массив для хранения выбранных позиций
+    let currentCategoryItems = [];    // Массив объектов {name, qty} для текущей категории
+    let currentSelectedStock = null;  // Доступный остаток для выбранного товара
 
     document.addEventListener("DOMContentLoaded", () => {
       const savedFio = localStorage.getItem("lab_fio");
@@ -275,7 +265,7 @@
     function showForm() {
       document.getElementById("profile-card").classList.add("hidden");
       document.getElementById("form-card").classList.remove("hidden");
-      renderCart(); // Обновляем корзину при показе формы
+      renderCart(); 
     }
 
     // Загрузка реактивов в Datalist
@@ -285,6 +275,7 @@
       const itemInput = document.getElementById("item-input");
       const itemsList = document.getElementById("items-list");
       const status = document.getElementById("status");
+      const stockInfoDiv = document.getElementById("stock-info");
 
       if (!category) return;
 
@@ -293,23 +284,25 @@
       itemInput.placeholder = "⌛ Загрузка списка...";
       itemInput.disabled = true;
       itemsList.innerHTML = "";
+      stockInfoDiv.innerHTML = "";
+      currentCategoryItems = [];
+      currentSelectedStock = null;
 
       try {
         const response = await fetch(`${BACKEND_URL}?type=${category}`);
         const data = await response.json();
 
         if (data.success && data.items) {
-          currentCategoryItems = data.items; // Сохраняем объекты {name, qty}
+          currentCategoryItems = data.items; 
 
           data.items.forEach(itemObj => {
             const opt = document.createElement("option");
-            opt.value = itemObj.name; // В datalist идет название
+            opt.value = itemObj.name; 
             itemsList.appendChild(opt);
           });
           itemInput.placeholder = "🔍 Начните вводить название...";
           itemInput.disabled = false;
-        } 
-        else {
+        } else {
           itemInput.placeholder = "Ошибка загрузки списка";
           status.innerText = "❌ Ошибка: " + (data.error || "Неизвестная ошибка");
         }
@@ -319,15 +312,66 @@
       }
     }
 
+    // Проверка остатка при вводе/выборе
+    function checkStock() {
+      const inputVal = document.getElementById("item-input").value.trim();
+      const stockInfoDiv = document.getElementById("stock-info");
+      const qtyInput = document.getElementById("quantity");
+      
+      const found = currentCategoryItems.find(i => i.name === inputVal);
+      
+      if (found) {
+        currentSelectedStock = Number(found.qty);
+        if (!isNaN(currentSelectedStock)) {
+          stockInfoDiv.innerHTML = `📦 Остаток на складе: <b>${found.qty}</b>`;
+          qtyInput.max = currentSelectedStock;
+        } else {
+          currentSelectedStock = null;
+          stockInfoDiv.innerHTML = `📦 Остаток на складе: <b>${found.qty}</b>`;
+          qtyInput.removeAttribute("max");
+        }
+      } else {
+        currentSelectedStock = null;
+        stockInfoDiv.innerHTML = "";
+        qtyInput.removeAttribute("max");
+      }
+    }
+
+    // Контроль ввода: только натуральные целые числа и не больше остатка
+    function validateQuantity() {
+      const qtyInput = document.getElementById("quantity");
+      let cleanVal = qtyInput.value.replace(/\D/g, ""); // Убираем всё, кроме цифр
+      
+      if (cleanVal !== "") {
+        let val = parseInt(cleanVal, 10);
+        
+        if (val < 1) val = 1;
+
+        if (currentSelectedStock !== null && !isNaN(currentSelectedStock) && val > currentSelectedStock) {
+          val = currentSelectedStock;
+        }
+        
+        qtyInput.value = val;
+      } else {
+        qtyInput.value = "";
+      }
+    }
+
     // Добавление позиции в корзину
     function addToCart() {
       const itemInput = document.getElementById("item-input");
       const qtyInput = document.getElementById("quantity");
       const item = itemInput.value.trim();
-      const quantity = qtyInput.value.trim();
+      const quantity = parseInt(qtyInput.value.trim(), 10);
 
-      if (!item || !quantity) {
-        alert("Заполните поле позиции и количества!");
+      if (!item || isNaN(quantity) || quantity <= 0) {
+        alert("Заполните позицию и корректное целое количество!");
+        return;
+      }
+
+      if (currentSelectedStock !== null && !isNaN(currentSelectedStock) && quantity > currentSelectedStock) {
+        alert(`Нельзя списать больше, чем есть на складе (${currentSelectedStock})!`);
+        qtyInput.value = currentSelectedStock;
         return;
       }
 
@@ -337,7 +381,10 @@
       // Очищаем поля ввода для следующей позиции
       itemInput.value = "";
       qtyInput.value = "";
-      itemInput.focus(); // Возвращаем фокус на ввод позиции
+      document.getElementById("stock-info").innerHTML = ""; 
+      currentSelectedStock = null;
+      qtyInput.removeAttribute("max");
+      itemInput.focus(); 
 
       renderCart();
     }
@@ -388,7 +435,7 @@
         lab: localStorage.getItem("lab_num"),
         company: localStorage.getItem("lab_company"),
         category: category,
-        cart: cart // Отправляем массив объектов
+        cart: cart 
       };
 
       submitBtn.disabled = true;
@@ -405,8 +452,8 @@
 
         if (resData.success) {
           status.innerText = "✅ Успешно записано в «Расход»!";
-          cart = []; // Очищаем корзину
-          renderCart(); // Перерисовываем пустую корзину
+          cart = []; 
+          renderCart(); 
           setTimeout(() => { status.innerText = ""; }, 4000);
         } else {
           status.innerText = "❌ Ошибка записи: " + resData.error;
@@ -418,19 +465,6 @@
         submitBtn.innerText = "Отправить расход";
       }
     }
-    function checkStock() {
-  const inputVal = document.getElementById("item-input").value.trim();
-  const stockInfoDiv = document.getElementById("stock-info");
-
-  // Ищем выбранный элемент в загруженном массиве
-  const found = currentCategoryItems.find(i => i.name === inputVal);
-
-  if (found) {
-    stockInfoDiv.innerHTML = `📦 Остаток на складе: <b>${found.qty}</b>`;
-  } else {
-    stockInfoDiv.innerHTML = "";
-  }
-}
   </script>
 </body>
 </html>
