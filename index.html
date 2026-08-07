@@ -14,6 +14,7 @@
       --button-color: var(--tg-theme-button-color, #007aff);
       --button-text: var(--tg-theme-button-text-color, #ffffff);
       --danger-color: #ff3b30;
+      --border-color: #d1d1d6;
     }
 
     body {
@@ -51,12 +52,48 @@
     input, select {
       width: 100%;
       padding: 10px;
-      border: 1px solid #d1d1d6;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       box-sizing: border-box;
       font-size: 15px;
       background: var(--card-bg);
       color: var(--text-color);
+    }
+
+    /* Контейнер для кастомного поиска с выпадающим списком */
+    .autocomplete-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .autocomplete-items {
+      position: absolute;
+      border: 1px solid var(--border-color);
+      border-top: none;
+      z-index: 99;
+      top: 100%;
+      left: 0;
+      right: 0;
+      max-height: 160px; /* Ограничиваем высоту, чтобы не перекрывать экран */
+      overflow-y: auto;
+      background: var(--card-bg);
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .autocomplete-items div {
+      padding: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+
+    .autocomplete-items div:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-items div:hover {
+      background-color: rgba(0, 122, 255, 0.1);
     }
 
     .radio-group {
@@ -186,11 +223,15 @@
 
     <div id="items-wrapper" class="hidden">
       <label for="item-input">Позиция (начните вводить название)</label>
-      <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off" oninput="checkStock()">
-      <datalist id="items-list"></datalist>
+      
+      <!-- Кастомный блок автодополнения вместо datalist -->
+      <div class="autocomplete-container">
+        <input type="text" id="item-input" placeholder="🔍 Введите название..." autocomplete="off" oninput="filterItems()">
+        <div id="autocomplete-list" class="autocomplete-items"></div>
+      </div>
 
       <!-- Инфо об остатке -->
-      <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 4px; margin-bottom: 8px;"></div>
+      <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 6px; margin-bottom: 8px;"></div>
 
       <label for="quantity">Количество</label>
       <input type="number" id="quantity" min="1" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Введите целое число" oninput="validateQuantity()">
@@ -220,9 +261,9 @@
       tg.expand();
     }
 
-    let cart = [];                    // Массив для хранения выбранных позиций
-    let currentCategoryItems = [];    // Массив объектов {name, qty} для текущей категории
-    let currentSelectedStock = null;  // Доступный остаток для выбранного товара
+    let cart = [];                    
+    let currentCategoryItems = [];    
+    let currentSelectedStock = null;  
 
     document.addEventListener("DOMContentLoaded", () => {
       const savedFio = localStorage.getItem("lab_fio");
@@ -237,6 +278,13 @@
         }
         showForm();
       }
+
+      // Закрытие выпадающего списка при клике вне поля
+      document.addEventListener("click", function (e) {
+        if (!e.target.closest(".autocomplete-container")) {
+          closeAllLists();
+        }
+      });
     });
 
     function saveProfile() {
@@ -268,12 +316,11 @@
       renderCart(); 
     }
 
-    // Загрузка реактивов в Datalist
+    // Загрузка реактивов с бэкенда
     async function loadItems() {
       const category = document.getElementById("category").value;
       const itemsWrapper = document.getElementById("items-wrapper");
       const itemInput = document.getElementById("item-input");
-      const itemsList = document.getElementById("items-list");
       const status = document.getElementById("status");
       const stockInfoDiv = document.getElementById("stock-info");
 
@@ -283,10 +330,10 @@
       itemInput.value = "";
       itemInput.placeholder = "⌛ Загрузка списка...";
       itemInput.disabled = true;
-      itemsList.innerHTML = "";
       stockInfoDiv.innerHTML = "";
       currentCategoryItems = [];
       currentSelectedStock = null;
+      closeAllLists();
 
       try {
         const response = await fetch(`${BACKEND_URL}?type=${category}`);
@@ -294,12 +341,6 @@
 
         if (data.success && data.items) {
           currentCategoryItems = data.items; 
-
-          data.items.forEach(itemObj => {
-            const opt = document.createElement("option");
-            opt.value = itemObj.name; 
-            itemsList.appendChild(opt);
-          });
           itemInput.placeholder = "🔍 Начните вводить название...";
           itemInput.disabled = false;
         } else {
@@ -312,13 +353,49 @@
       }
     }
 
-    // Проверка остатка при вводе/выборе
-    function checkStock() {
+    // Фильтрация и вывод кастомного выпадающего списка
+    function filterItems() {
+      const val = document.getElementById("item-input").value.trim().toLowerCase();
+      const listContainer = document.getElementById("autocomplete-list");
+      const stockInfoDiv = document.getElementById("stock-info");
+      const qtyInput = document.getElementById("quantity");
+
+      closeAllLists();
+      
+      // Сбрасываем выбранный остаток при изменении текста, пока не будет точного совпадения
+      currentSelectedStock = null;
+      stockInfoDiv.innerHTML = "";
+      qtyInput.removeAttribute("max");
+
+      if (!val) return;
+
+      // Ищем совпадения (показываем максимум 15 штук, чтобы не засорять экран)
+      const matches = currentCategoryItems.filter(item => item.name.toLowerCase().includes(val)).slice(0, 15);
+
+      if (matches.length === 0) return;
+
+      matches.forEach(itemObj => {
+        const itemDiv = document.createElement("div");
+        // Подсвечиваем текст совпадения (опционально) или просто выводим имя
+        itemDiv.innerHTML = itemObj.name;
+        
+        itemDiv.addEventListener("click", function() {
+          document.getElementById("item-input").value = itemObj.name;
+          checkStock(itemObj);
+          closeAllLists();
+        });
+
+        listContainer.appendChild(itemDiv);
+      });
+    }
+
+    // Проверка точного совпадения для остатка
+    function checkStock(selectedObj = null) {
       const inputVal = document.getElementById("item-input").value.trim();
       const stockInfoDiv = document.getElementById("stock-info");
       const qtyInput = document.getElementById("quantity");
       
-      const found = currentCategoryItems.find(i => i.name === inputVal);
+      const found = selectedObj || currentCategoryItems.find(i => i.name === inputVal);
       
       if (found) {
         currentSelectedStock = Number(found.qty);
@@ -337,10 +414,15 @@
       }
     }
 
+    function closeAllLists() {
+      const listContainer = document.getElementById("autocomplete-list");
+      listContainer.innerHTML = "";
+    }
+
     // Контроль ввода: только натуральные целые числа и не больше остатка
     function validateQuantity() {
       const qtyInput = document.getElementById("quantity");
-      let cleanVal = qtyInput.value.replace(/\D/g, ""); // Убираем всё, кроме цифр
+      let cleanVal = qtyInput.value.replace(/\D/g, ""); 
       
       if (cleanVal !== "") {
         let val = parseInt(cleanVal, 10);
@@ -364,8 +446,11 @@
       const item = itemInput.value.trim();
       const quantity = parseInt(qtyInput.value.trim(), 10);
 
-      if (!item || isNaN(quantity) || quantity <= 0) {
-        alert("Заполните позицию и корректное целое количество!");
+      // Проверяем, есть ли такое название в базе
+      const isValidItem = currentCategoryItems.some(i => i.name === item);
+
+      if (!item || !isValidItem || isNaN(quantity) || quantity <= 0) {
+        alert("Выберите позицию из выпадающего списка и введите корректное количество!");
         return;
       }
 
@@ -375,10 +460,8 @@
         return;
       }
 
-      // Добавляем в массив
       cart.push({ item: item, quantity: quantity });
 
-      // Очищаем поля ввода для следующей позиции
       itemInput.value = "";
       qtyInput.value = "";
       document.getElementById("stock-info").innerHTML = ""; 
@@ -389,13 +472,11 @@
       renderCart();
     }
 
-    // Удаление позиции из корзины
     function removeFromCart(index) {
       cart.splice(index, 1);
       renderCart();
     }
 
-    // Отрисовка корзины на экране
     function renderCart() {
       const cartCard = document.getElementById("cart-card");
       const cartList = document.getElementById("cart-list");
@@ -419,7 +500,6 @@
       }
     }
 
-    // Отправка всей корзины
     async function submitCart() {
       const category = document.getElementById("category").value;
       const submitBtn = document.getElementById("submit-btn");
