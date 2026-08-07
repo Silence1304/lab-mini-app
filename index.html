@@ -189,6 +189,20 @@
       <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off">
       <datalist id="items-list"></datalist>
 
+    <div id="items-wrapper" class="hidden">
+  <label for="item-input">Позиция (начните вводить название)</label>
+  <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off" oninput="checkStock()">
+  <datalist id="items-list"></datalist>
+
+  <!-- Сюда выводим остаток -->
+  <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 4px; margin-bottom: 8px;"></div>
+
+  <label for="quantity">Количество</label>
+  <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
+
+  <button class="btn btn-secondary" id="add-to-cart-btn" onclick="addToCart()">➕ Добавить в корзину</button>
+  </div>
+
       <label for="quantity">Количество</label>
       <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
 
@@ -216,7 +230,8 @@
     if (tg) {
       tg.expand();
     }
-
+    
+    let currentCategoryItems = []; // Глобальный список для текущей категории
     let cart = []; // Массив для хранения выбранных позиций
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -284,14 +299,17 @@
         const data = await response.json();
 
         if (data.success && data.items) {
-          data.items.forEach(item => {
+          currentCategoryItems = data.items; // Сохраняем объекты {name, qty}
+
+          data.items.forEach(itemObj => {
             const opt = document.createElement("option");
-            opt.value = item;
+            opt.value = itemObj.name; // В datalist идет название
             itemsList.appendChild(opt);
           });
           itemInput.placeholder = "🔍 Начните вводить название...";
           itemInput.disabled = false;
-        } else {
+        } 
+        else {
           itemInput.placeholder = "Ошибка загрузки списка";
           status.innerText = "❌ Ошибка: " + (data.error || "Неизвестная ошибка");
         }
@@ -400,6 +418,19 @@
         submitBtn.innerText = "Отправить расход";
       }
     }
+    function checkStock() {
+  const inputVal = document.getElementById("item-input").value.trim();
+  const stockInfoDiv = document.getElementById("stock-info");
+
+  // Ищем выбранный элемент в загруженном массиве
+  const found = currentCategoryItems.find(i => i.name === inputVal);
+
+  if (found) {
+    stockInfoDiv.innerHTML = `📦 Остаток на складе: <b>${found.qty}</b>`;
+  } else {
+    stockInfoDiv.innerHTML = "";
+  }
+}
   </script>
 </body>
 </html>
