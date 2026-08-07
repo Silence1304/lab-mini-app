@@ -2,301 +2,357 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Учет Расходников</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Списание расходников</title>
   <style>
-    :root {
-      --bg-color: var(--tg-theme-bg-color, #f4f4f5);
-      --card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
-      --text-color: var(--tg-theme-text-color, #1c1c1e);
-      --hint-color: var(--tg-theme-hint-color, #8e8e93);
-      --button-color: var(--tg-theme-button-color, #007aff);
-      --button-text: var(--tg-theme-button-text-color, #ffffff);
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      background-color: #f8fafc;
       margin: 0;
       padding: 16px;
-      box-sizing: border-box;
+      color: #1e293b;
     }
 
     .card {
-      background: var(--card-bg);
+      background: #ffffff;
       border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 20px;
+      max-width: 480px;
+      margin: 0 auto;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     h2 {
-      font-size: 18px;
       margin-top: 0;
-      margin-bottom: 12px;
-      color: var(--text-color);
+      font-size: 20px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
     }
 
     label {
       display: block;
       font-size: 13px;
-      color: var(--hint-color);
+      font-weight: 600;
+      color: #475569;
       margin-bottom: 4px;
-      margin-top: 10px;
     }
 
     input, select {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #d1d1d6;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 15px;
-      background: var(--card-bg);
-      color: var(--text-color);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
     }
 
-    .radio-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 6px;
+    input:focus, select:focus {
+      border-color: #3b82f6;
     }
 
-    .radio-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 15px;
-      color: var(--text-color);
-      cursor: pointer;
-    }
-
-    .radio-label input {
-      width: auto;
-    }
-
-    .btn {
+    .btn-add {
       width: 100%;
-      background-color: var(--button-color);
-      color: var(--button-text);
+      padding: 12px;
+      background-color: #475569;
+      color: white;
       border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 16px;
+      border-radius: 8px;
       font-weight: 600;
+      font-size: 14px;
       cursor: pointer;
-      margin-top: 16px;
-      transition: opacity 0.2s;
+      transition: background-color 0.2s;
     }
 
-    .btn:disabled {
-      opacity: 0.5;
+    .btn-add:hover {
+      background-color: #334155;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background-color 0.2s;
+    }
+
+    .btn-submit:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn-submit:disabled {
+      background-color: #94a3b8;
       cursor: not-allowed;
     }
 
-    .hidden {
+    hr {
+      margin: 20px 0;
+      border: 0;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .cart-section {
       display: none;
     }
 
-    #status {
-      text-align: center;
+    .cart-header {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #1e293b;
+    }
+
+    .cart-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+
+    .cart-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .cart-item-title {
+      font-weight: 600;
       font-size: 14px;
-      margin-top: 10px;
-      font-weight: 500;
+      color: #0f172a;
+    }
+
+    .cart-item-sub {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .btn-remove {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .btn-remove:hover {
+      background-color: #fee2e2;
+    }
+
+    .status-msg {
+      margin-top: 15px;
+      font-weight: 600;
+      font-size: 14px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
 
-  <!-- Блок 1: Профиль пользователя -->
-  <div class="card" id="profile-card">
-    <h2>👤 Профиль сотрудника</h2>
-    
-    <label for="fio">ФИО (реальноеИмя)</label>
-    <input type="text" id="fio" placeholder="Иванов Иван Иванович">
-
-    <label for="lab">Лаборатория №</label>
-    <input type="text" id="lab" placeholder="Например: 102">
-
-    <label>Организация / Оформление:</label>
-    <div class="radio-group">
-      <label class="radio-label">
-        <input type="radio" name="company" value="ООО" checked> ООО
-      </label>
-      <label class="radio-label">
-        <input type="radio" name="company" value="НПФ"> НПФ
-      </label>
-    </div>
-
-    <button class="btn" id="save-profile-btn" onclick="saveProfile()">Сохранить данные</button>
-  </div>
-
-  <!-- Блок 2: Форма списания -->
-  <div class="card hidden" id="form-card">
+  <div class="card">
     <h2>🧪 Форма списания</h2>
 
-    <label for="category">Категория</label>
-    <select id="category" onchange="loadItems()">
-      <option value="" disabled selected>-- Выберите категорию --</option>
-      <option value="precursors">Прекурсоры</option>
-      <option value="chemistry">Химия</option>
-    </select>
-
-    <div id="items-wrapper" class="hidden">
-      <label for="item-input">Позиция (начните вводить название)</label>
-      <!-- Поле с автокомплитом и поиском -->
-      <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off">
-      <datalist id="items-list"></datalist>
-
-      <label for="quantity">Количество</label>
-      <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
-
-      <button class="btn" id="submit-btn" onclick="submitForm()">Отправить расход</button>
+    <!-- Категория -->
+    <div class="form-group">
+      <label for="category">Категория</label>
+      <select id="category" onchange="onCategoryChange()">
+        <option value="chemistry">🥼 Химия</option>
+        <option value="precursors">🧪 Прекурсоры</option>
+      </select>
     </div>
 
-    <button style="background: none; border: none; color: var(--hint-color); width: 100%; margin-top: 15px; font-size: 12px; cursor: pointer;" onclick="editProfile()">⚙️ Изменить профиль</button>
+    <!-- Название позиции -->
+    <div class="form-group">
+      <label for="item">Позиция</label>
+      <input type="text" id="item" placeholder="Начните вводить название..." list="itemsList">
+      <datalist id="itemsList"></datalist>
+    </div>
+
+    <!-- Компания (только для прекурсоров) -->
+    <div class="form-group" id="companyGroup" style="display: none;">
+      <label for="company">Компания</label>
+      <input type="text" id="company" placeholder="Название компании">
+    </div>
+
+    <!-- Количество -->
+    <div class="form-group">
+      <label for="quantity">Количество</label>
+      <input type="number" id="quantity" min="1" value="1">
+    </div>
+
+    <!-- Кнопка добавления в список -->
+    <button type="button" class="btn-add" onclick="addToCart()">➕ Добавить в список</button>
+
+    <!-- Разделитель и Корзина -->
+    <div id="cartSection" class="cart-section">
+      <hr>
+      <div class="cart-header">📦 Список к списанию (<span id="cartCount">0</span>):</div>
+      <div id="cartList" class="cart-list"></div>
+
+      <button type="button" id="submitBtn" class="btn-submit" onclick="submitBatch()">
+        🚀 Отправить всё списание
+      </button>
+    </div>
+
+    <div id="statusMessage" class="status-msg"></div>
   </div>
 
-  <div id="status"></div>
-
   <script>
-    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxc17aqZjPhzlpKhh60HaadufMlrntuMhh5t7jxnom0gYrFqYqJeCGz7iM_iBeSuyctkg/exec";
-    const tg = window.Telegram?.WebApp;
+    // ⚠️ Вставьте ваш актуальный URL развертывания Web App из Google Apps Script
+    const WEB_APP_URL = "ВАШ_WEB_APP_URL_ИЗ_APPS_SCRIPT";
 
-    if (tg) {
-      tg.expand();
+    // Глобальный массив корзины
+    let cart = [];
+
+    // Переключение категории (скрывает/показывает поле компании)
+    function onCategoryChange() {
+      const category = document.getElementById('category').value;
+      const companyGroup = document.getElementById('companyGroup');
+      companyGroup.style.display = (category === 'precursors') ? 'block' : 'none';
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedFio = localStorage.getItem("lab_fio");
-      const savedLab = localStorage.getItem("lab_num");
-      const savedCompany = localStorage.getItem("lab_company");
+    // Добавление позиций в локальную корзину
+    function addToCart() {
+      const category = document.getElementById('category').value;
+      const itemInput = document.getElementById('item');
+      const quantityInput = document.getElementById('quantity');
+      const companyInput = document.getElementById('company');
 
-      if (savedFio && savedLab) {
-        document.getElementById("fio").value = savedFio;
-        document.getElementById("lab").value = savedLab;
-        if (savedCompany) {
-          document.querySelector(`input[name="company"][value="${savedCompany}"]`).checked = true;
-        }
-        showForm();
+      const item = itemInput.value.trim();
+      const quantity = parseInt(quantityInput.value, 10);
+      const company = companyInput.value.trim();
+
+      if (!item) {
+        alert("Пожалуйста, введите название позиции!");
+        return;
       }
-    });
-
-    function saveProfile() {
-      const fio = document.getElementById("fio").value.trim();
-      const lab = document.getElementById("lab").value.trim();
-      const company = document.querySelector('input[name="company"]:checked').value;
-
-      if (!fio || !lab) {
-        alert("Пожалуйста, заполните ФИО и номер лаборатории!");
+      if (isNaN(quantity) || quantity <= 0) {
+        alert("Введите корректное количество!");
         return;
       }
 
-      localStorage.setItem("lab_fio", fio);
-      localStorage.setItem("lab_num", lab);
-      localStorage.setItem("lab_company", company);
-
-      showForm();
-    }
-
-    function editProfile() {
-      document.getElementById("profile-card").classList.remove("hidden");
-      document.getElementById("form-card").classList.add("hidden");
-    }
-
-    function showForm() {
-      document.getElementById("profile-card").classList.add("hidden");
-      document.getElementById("form-card").classList.remove("hidden");
-    }
-
-    // Загрузка реактивов в Datalist
-    async function loadItems() {
-      const category = document.getElementById("category").value;
-      const itemsWrapper = document.getElementById("items-wrapper");
-      const itemInput = document.getElementById("item-input");
-      const itemsList = document.getElementById("items-list");
-      const status = document.getElementById("status");
-
-      if (!category) return;
-
-      itemsWrapper.classList.remove("hidden");
-      itemInput.value = "";
-      itemInput.placeholder = "⌛ Загрузка списка...";
-      itemInput.disabled = true;
-      itemsList.innerHTML = "";
-
-      try {
-        const response = await fetch(`${BACKEND_URL}?type=${category}`);
-        const data = await response.json();
-
-        if (data.success && data.items) {
-          data.items.forEach(item => {
-            const opt = document.createElement("option");
-            opt.value = item;
-            itemsList.appendChild(opt);
-          });
-          itemInput.placeholder = "🔍 Начните вводить название...";
-          itemInput.disabled = false;
-        } else {
-          itemInput.placeholder = "Ошибка загрузки списка";
-          status.innerText = "❌ Ошибка: " + (data.error || "Неизвестная ошибка");
-        }
-      } catch (err) {
-        itemInput.placeholder = "Ошибка сети";
-        status.innerText = "❌ Ошибка подключения к серверу";
-      }
-    }
-
-    // Отправка формы
-    async function submitForm() {
-      const category = document.getElementById("category").value;
-      const item = document.getElementById("item-input").value.trim();
-      const quantity = document.getElementById("quantity").value.trim();
-      const submitBtn = document.getElementById("submit-btn");
-      const status = document.getElementById("status");
-
-      if (!category || !item || !quantity) {
-        alert("Заполните все поля (категорию, позицию и количество)!");
-        return;
-      }
-
-      const payload = {
-        fio: localStorage.getItem("lab_fio"),
-        lab: localStorage.getItem("lab_num"),
-        company: localStorage.getItem("lab_company"),
+      // Сохраняем элемент
+      cart.push({
         category: category,
         item: item,
-        quantity: quantity
-      };
+        quantity: quantity,
+        company: (category === 'precursors') ? company : ''
+      });
+
+      // Сбрасываем поля для удобства следующего ввода
+      itemInput.value = '';
+      quantityInput.value = '1';
+      companyInput.value = '';
+
+      renderCart();
+    }
+
+    // Удаление элемента из списка
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      renderCart();
+    }
+
+    // Отрисовка элементов корзины
+    function renderCart() {
+      const cartSection = document.getElementById('cartSection');
+      const cartList = document.getElementById('cartList');
+      const cartCount = document.getElementById('cartCount');
+
+      if (cart.length === 0) {
+        cartSection.style.display = 'none';
+        return;
+      }
+
+      cartSection.style.display = 'block';
+      cartCount.textContent = cart.length;
+      cartList.innerHTML = '';
+
+      cart.forEach((el, idx) => {
+        const categoryBadge = el.category === 'precursors' ? '🧪 Прекурсор' : '🥼 Химия';
+        const companyText = el.company ? ` (${el.company})` : '';
+
+        const div = document.createElement('div');
+        div.className = 'cart-item';
+        div.innerHTML = `
+          <div class="cart-item-info">
+            <span class="cart-item-title">${el.item} — <b>${el.quantity} шт.</b></span>
+            <span class="cart-item-sub">${categoryBadge}${companyText}</span>
+          </div>
+          <button type="button" class="btn-remove" onclick="removeFromCart(${idx})" title="Удалить">❌</button>
+        `;
+        cartList.appendChild(div);
+      });
+    }
+
+    // Массовая отправка списка в Apps Script
+    function submitBatch() {
+      if (cart.length === 0) return;
+
+      const submitBtn = document.getElementById('submitBtn');
+      const statusMsg = document.getElementById('statusMessage');
 
       submitBtn.disabled = true;
-      submitBtn.innerText = "Отправка...";
-      status.innerText = "⏳ Запись в таблицу...";
+      submitBtn.textContent = "⏳ Сохранение и отправка...";
+      statusMsg.textContent = "";
 
-      try {
-        const response = await fetch(BACKEND_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
+      // Собираем данные (проверьте переменные профиля пользователя, если они есть у вас в скрипте)
+      const payload = {
+        user: (typeof currentUserFio !== 'undefined') ? currentUserFio : "Лазикян Екатерина Ашотовна",
+        lab: (typeof currentLab !== 'undefined') ? currentLab : "308",
+        items: cart
+      };
 
-        const resData = await response.json();
-
-        if (resData.success) {
-          status.innerText = "✅ Успешно записано в «Расход»!";
-          document.getElementById("quantity").value = "";
-          document.getElementById("item-input").value = "";
-          setTimeout(() => { status.innerText = ""; }, 4000);
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Текстовый заголовок избавляет от проблем CORS в Apps Script
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          statusMsg.style.color = "#16a34a";
+          statusMsg.textContent = "✅ Все списания успешно внесены!";
+          cart = [];
+          renderCart();
         } else {
-          status.innerText = "❌ Ошибка записи: " + resData.error;
+          throw new Error(data.error || "Ошибка сервера");
         }
-      } catch (err) {
-        status.innerText = "❌ Ошибка отправки данных";
-      } finally {
+      })
+      .catch(err => {
+        statusMsg.style.color = "#dc2626";
+        statusMsg.textContent = "❌ Ошибка отправки: " + err.message;
+      })
+      .finally(() => {
         submitBtn.disabled = false;
-        submitBtn.innerText = "Отправить расход";
-      }
+        submitBtn.textContent = "🚀 Отправить всё списание";
+      });
     }
   </script>
 </body>
