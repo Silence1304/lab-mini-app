@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Учет Расходников</title>
-  <!-- Подключаем скрипт Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -146,10 +145,10 @@
     </select>
 
     <div id="items-wrapper" class="hidden">
-      <label for="item">Позиция (столбец M)</label>
-      <select id="item">
-        <option value="">Загрузка списка...</option>
-      </select>
+      <label for="item-input">Позиция (начните вводить название)</label>
+      <!-- Поле с автокомплитом и поиском -->
+      <input type="text" id="item-input" list="items-list" placeholder="🔍 Введите название..." autocomplete="off">
+      <datalist id="items-list"></datalist>
 
       <label for="quantity">Количество</label>
       <input type="number" id="quantity" min="0.01" step="any" placeholder="Введите количество">
@@ -167,10 +166,9 @@
     const tg = window.Telegram?.WebApp;
 
     if (tg) {
-      tg.expand(); // Разворачиваем шторку Mini App на весь экран
+      tg.expand();
     }
 
-    // Инициализация при загрузке страницы
     document.addEventListener("DOMContentLoaded", () => {
       const savedFio = localStorage.getItem("lab_fio");
       const savedLab = localStorage.getItem("lab_num");
@@ -213,46 +211,48 @@
       document.getElementById("form-card").classList.remove("hidden");
     }
 
-    // Загрузка доступных позиций из столбца M
+    // Загрузка реактивов в Datalist
     async function loadItems() {
       const category = document.getElementById("category").value;
       const itemsWrapper = document.getElementById("items-wrapper");
-      const itemSelect = document.getElementById("item");
+      const itemInput = document.getElementById("item-input");
+      const itemsList = document.getElementById("items-list");
       const status = document.getElementById("status");
 
       if (!category) return;
 
       itemsWrapper.classList.remove("hidden");
-      itemSelect.innerHTML = "<option>⌛ Загрузка из таблицы...</option>";
-      itemSelect.disabled = true;
+      itemInput.value = "";
+      itemInput.placeholder = "⌛ Загрузка списка...";
+      itemInput.disabled = true;
+      itemsList.innerHTML = "";
 
       try {
         const response = await fetch(`${BACKEND_URL}?type=${category}`);
         const data = await response.json();
 
         if (data.success && data.items) {
-          itemSelect.innerHTML = '<option value="" disabled selected>-- Выберите позицию --</option>';
           data.items.forEach(item => {
             const opt = document.createElement("option");
             opt.value = item;
-            opt.textContent = item;
-            itemSelect.appendChild(opt);
+            itemsList.appendChild(opt);
           });
-          itemSelect.disabled = false;
+          itemInput.placeholder = "🔍 Начните вводить название...";
+          itemInput.disabled = false;
         } else {
-          itemSelect.innerHTML = "<option>Ошибка загрузки списка</option>";
-          status.innerText = " Ошибка: " + (data.error || "Неизвестная ошибка");
+          itemInput.placeholder = "Ошибка загрузки списка";
+          status.innerText = "❌ Ошибка: " + (data.error || "Неизвестная ошибка");
         }
       } catch (err) {
-        itemSelect.innerHTML = "<option>Ошибка сети</option>";
+        itemInput.placeholder = "Ошибка сети";
         status.innerText = "❌ Ошибка подключения к серверу";
       }
     }
 
-    // Отправка формы на бэкенд
+    // Отправка формы
     async function submitForm() {
       const category = document.getElementById("category").value;
-      const item = document.getElementById("item").value;
+      const item = document.getElementById("item-input").value.trim();
       const quantity = document.getElementById("quantity").value.trim();
       const submitBtn = document.getElementById("submit-btn");
       const status = document.getElementById("status");
@@ -284,9 +284,9 @@
         const resData = await response.json();
 
         if (resData.success) {
-          status.innerText = " Успешно записано в «Расход»!";
+          status.innerText = "✅ Успешно записано в «Расход»!";
           document.getElementById("quantity").value = "";
-          document.getElementById("item").value = "";
+          document.getElementById("item-input").value = "";
           setTimeout(() => { status.innerText = ""; }, 4000);
         } else {
           status.innerText = "❌ Ошибка записи: " + resData.error;
