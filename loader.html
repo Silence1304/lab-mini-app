@@ -14,7 +14,7 @@
       --button-color: var(--tg-theme-button-color, #007aff);
       --button-text: var(--tg-theme-button-text-color, #ffffff);
       --border-color: #d1d1d6;
-      --success-color: #34c759;
+      --accent-bg: rgba(0, 122, 255, 0.05);
     }
 
     body {
@@ -35,45 +35,80 @@
     .order-card {
       background: var(--card-bg);
       border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      border-left: 5px solid var(--button-color);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 1px solid transparent;
     }
 
-    .order-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 13px;
-      color: var(--hint-color);
-      margin-bottom: 8px;
+    .order-card:active {
+      background: var(--accent-bg);
     }
 
-    .item-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    .item-details {
+    .order-header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid #e5e5ea;
-      font-size: 14px;
     }
 
-    .location-badge {
-      background: rgba(0, 122, 255, 0.1);
-      color: var(--button-color);
-      padding: 4px 10px;
-      border-radius: 6px;
+    .order-title {
+      font-size: 16px;
       font-weight: 600;
     }
 
-    .qty-badge {
+    .order-meta {
+      font-size: 13px;
+      color: var(--hint-color);
+      margin-top: 4px;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Список позиций внутри заказа */
+    .items-list {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #e5e5ea;
+      display: none;
+    }
+
+    .order-card.expanded .items-list {
+      display: block;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      background: var(--bg-color);
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .item-row:hover {
+      background: rgba(0, 122, 255, 0.1);
+    }
+
+    .item-name-text {
+      flex-grow: 1;
+      padding-right: 10px;
+    }
+
+    .item-qty {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Состояние клика по позиции (показ места хранения) */
+    .item-row.location-view {
+      background: #e8f5e9 !important;
+      color: #2e7d32;
       font-weight: 600;
     }
 
@@ -100,7 +135,7 @@
 </head>
 <body>
 
-  <h2>👷 Очередь сборки</h2>
+  <h2>👷 Очередь заказов</h2>
   <button class="refresh-btn" onclick="loadLoaderOrders()">🔄 Обновить список</button>
   
   <div id="orders-container">
@@ -108,7 +143,6 @@
   </div>
 
   <script>
-    // Автоматически определяем базовый URL скрипта из текущего адреса страницы
     const CURRENT_URL = window.location.href.split('?')[0];
     const tg = window.Telegram?.WebApp;
 
@@ -135,21 +169,43 @@
           }
 
           container.innerHTML = "";
-          data.orders.forEach(order => {
+          data.orders.forEach((order, index) => {
             const card = document.createElement("div");
             card.className = "order-card";
-            card.innerHTML = `
-              <div class="order-header">
-                <span>📍 ${order.lab}</span>
-                <span>🕒 ${order.time || 'Только что'}</span>
+            
+            // Заголовок заказа
+            let html = `
+              <div class="order-header-row">
+                <span class="order-title">Заказ #${index + 1} (${order.category})</span>
+                <span style="font-size: 12px; color: var(--hint-color);">${order.time}</span>
               </div>
-              <div class="item-name">${order.name}</div>
-              <div class="item-details">
-                <span>Кол-во: <span class="qty-badge">${order.qty}</span></span>
-                <span class="location-badge">Место: ${order.location}</span>
+              <div class="order-meta">
+                <span>📍 Лаборатория ${order.lab}</span>
               </div>
+              <div class="items-list">
             `;
-            container.innerHTML += card.outerHTML;
+
+            // Список позиций внутри
+            order.items.forEach(item => {
+              html += `
+                <div class="item-row" onclick="toggleLocation(event, this, '${escapeHtml(item.name)}', '${escapeHtml(item.location)}')">
+                  <span class="item-name-text">${escapeHtml(item.name)}</span>
+                  <span class="item-qty">${item.qty} шт.</span>
+                </div>
+              `;
+            });
+
+            html += `</div>`;
+            card.innerHTML = html;
+
+            // Клик по карточке разворачивает/сворачивает список позиций
+            card.addEventListener("click", (e) => {
+              // Если кликнули по самой позиции, карточку не сворачиваем
+              if (e.target.closest('.item-row')) return;
+              card.classList.toggle("expanded");
+            });
+
+            container.appendChild(card);
           });
         } else {
           container.innerHTML = `<div class="empty-state">❌ Ошибка: ${data.error || "Не удалось загрузить задачи"}</div>`;
@@ -157,6 +213,32 @@
       } catch (err) {
         container.innerHTML = '<div class="empty-state">❌ Ошибка сети при загрузке очереди</div>';
       }
+    }
+
+    // Интерактив по клику на позицию: замена названия на место хранения и обратно
+    function toggleLocation(event, rowElement, originalName, locationText) {
+      event.stopPropagation(); // чтобы не триггерить сворачивание карточки заказа
+      
+      const nameSpan = rowElement.querySelector(".item-name-text");
+      
+      if (rowElement.classList.contains("location-view")) {
+        // Возвращаем название
+        nameSpan.innerText = originalName;
+        rowElement.classList.remove("location-view");
+      } else {
+        // Показываем место хранения из столбца N
+        nameSpan.innerText = "📍 Место: " + locationText;
+        rowElement.classList.add("location-view");
+      }
+    }
+
+    function escaparHTML(str) {
+      return str;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
   </script>
 </body>
