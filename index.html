@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Учет Расходников и Склад</title>
+  <title>Заказ реактивов</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -15,7 +15,6 @@
       --button-text: var(--tg-theme-button-text-color, #ffffff);
       --danger-color: #ff3b30;
       --border-color: #d1d1d6;
-      --accent-bg: rgba(0, 122, 255, 0.05);
     }
 
     body {
@@ -203,110 +202,11 @@
     }
     .prec-title { color: var(--danger-color); }
     .chem-title { color: var(--button-color); }
-
-    /* Стили для интерфейса грузчика */
-    .order-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      cursor: pointer;
-      transition: background 0.2s;
-      border: 1px solid transparent;
-    }
-
-    .order-card:active {
-      background: var(--accent-bg);
-    }
-
-    .order-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .order-title {
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .order-meta {
-      font-size: 13px;
-      color: var(--hint-color);
-      margin-top: 4px;
-      display: flex;
-      gap: 10px;
-    }
-
-    .items-list {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid #e5e5ea;
-      display: none;
-    }
-
-    .order-card.expanded .items-list {
-      display: block;
-    }
-
-    .item-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 10px;
-      margin-bottom: 6px;
-      background: var(--bg-color);
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-    }
-
-    .item-row:hover {
-      background: rgba(0, 122, 255, 0.1);
-    }
-
-    .item-name-text {
-      flex-grow: 1;
-      padding-right: 10px;
-    }
-
-    .item-qty {
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .item-row.location-view {
-      background: #e8f5e9 !important;
-      color: #2e7d32;
-      font-weight: 600;
-    }
-
-    .empty-state {
-      text-align: center;
-      color: var(--hint-color);
-      margin-top: 40px;
-      font-size: 15px;
-    }
-
-    .refresh-btn {
-      width: 100%;
-      background-color: var(--button-color);
-      color: var(--button-text);
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 16px;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Блок 1: Профиль сотрудника (Авторизация) -->
+  <!-- Блок 1: Профиль сотрудника -->
   <div class="card" id="profile-card">
     <h2>👤 Профиль сотрудника</h2>
     
@@ -326,17 +226,10 @@
       </label>
     </div>
 
-    <!-- Чекбокс для включения режима логиста -->
-    <div style="margin-top: 15px;">
-      <label class="radio-label" style="font-weight: 600;">
-        <input type="checkbox" id="isLogisticCheck" style="width: 20px; height: 20px;"> 👷 Режим логиста (грузчик)
-      </label>
-    </div>
-
     <button class="btn" id="save-profile-btn" onclick="saveProfile()">Сохранить данные</button>
   </div>
 
-  <!-- Блок 2: Форма списания (Пользовательская) -->
+  <!-- Блок 2: Форма списания -->
   <div class="card hidden" id="form-card">
     <h2>🧪 Форма списания</h2>
 
@@ -366,7 +259,7 @@
     <button style="background: none; border: none; color: var(--hint-color); width: 100%; margin-top: 15px; font-size: 12px; cursor: pointer;" onclick="editProfile()">⚙️ Изменить профиль</button>
   </div>
 
-  <!-- Блок 3: Раздельная корзина (Пользовательская) -->
+  <!-- Блок 3: Раздельная корзина -->
   <div class="card hidden" id="cart-card">
     <h2>🛒 Корзина списания</h2>
     
@@ -385,18 +278,6 @@
     </div>
     
     <button class="btn" id="submit-btn" onclick="submitCart()">Отправить расход</button>
-  </div>
-
-  <!-- Блок 4: Интерфейс грузчика (Логиста) -->
-  <div class="card hidden" id="loader-screen-card">
-    <h2>👷 Очередь заказов</h2>
-    <button class="refresh-btn" onclick="loadLoaderOrders()">🔄 Обновить список</button>
-    
-    <div id="orders-container">
-      <div class="empty-state">Загрузка задач...</div>
-    </div>
-
-    <button style="background: none; border: none; color: var(--hint-color); width: 100%; margin-top: 15px; font-size: 12px; cursor: pointer;" onclick="editProfile()">⚙️ Сменить профиль / Выйти из режима логиста</button>
   </div>
 
   <div id="status"></div>
@@ -421,12 +302,8 @@
       const savedFio = localStorage.getItem("lab_fio");
       const savedLab = localStorage.getItem("lab_num");
       const savedCompany = localStorage.getItem("lab_company");
-      const savedIsLogistic = localStorage.getItem("lab_is_logistic") === "true";
 
-      if (savedIsLogistic) {
-        // Сразу открываем интерфейс грузчика без ввода данных
-        showLoaderInterface();
-      } else if (savedFio && savedLab) {
+      if (savedFio && savedLab) {
         document.getElementById("fio").value = savedFio;
         document.getElementById("lab").value = savedLab;
         if (savedCompany) {
@@ -447,15 +324,6 @@
       const fio = document.getElementById("fio").value.trim();
       const lab = document.getElementById("lab").value.trim();
       const company = document.querySelector('input[name="company"]:checked').value;
-      const isLogistic = document.getElementById("isLogisticCheck").checked;
-
-      localStorage.setItem("lab_is_logistic", isLogistic);
-
-      if (isLogistic) {
-        // Грузчику не обязательно заполнять ФИО и лабораторию
-        showLoaderInterface();
-        return;
-      }
 
       if (!fio || !lab) {
         alert("Пожалуйста, заполните ФИО и номер лаборатории!");
@@ -473,27 +341,12 @@
       document.getElementById("profile-card").classList.remove("hidden");
       document.getElementById("form-card").classList.add("hidden");
       document.getElementById("cart-card").classList.add("hidden");
-      document.getElementById("loader-screen-card").classList.add("hidden");
-      
-      // Восстанавливаем состояние чекбокса из памяти
-      const savedIsLogistic = localStorage.getItem("lab_is_logistic") === "true";
-      document.getElementById("isLogisticCheck").checked = savedIsLogistic;
     }
 
     function showForm() {
       document.getElementById("profile-card").classList.add("hidden");
       document.getElementById("form-card").classList.remove("hidden");
-      document.getElementById("loader-screen-card").classList.add("hidden");
       renderCart(); 
-    }
-
-    function showLoaderInterface() {
-      document.getElementById("profile-card").classList.add("hidden");
-      document.getElementById("form-card").classList.add("hidden");
-      document.getElementById("cart-card").classList.add("hidden");
-      document.getElementById("loader-screen-card").classList.remove("hidden");
-      
-      loadLoaderOrders();
     }
 
     async function loadItems() {
@@ -657,10 +510,8 @@
 
     function renderCart() {
       const cartCard = document.getElementById("cart-card");
-      
       const precSection = document.getElementById("prec-cart-section");
       const chemSection = document.getElementById("chem-cart-section");
-      
       const precItemsContainer = document.getElementById("prec-cart-items");
       const chemItemsContainer = document.getElementById("chem-cart-items");
       const emptyMsg = document.getElementById("empty-cart-msg");
@@ -757,83 +608,6 @@
         submitBtn.disabled = false;
         submitBtn.innerText = "Отправить расход";
       }
-    }
-
-    // --- Логика загрузки очереди для грузчиков ---
-    async function loadLoaderOrders() {
-      const container = document.getElementById("orders-container");
-      container.innerHTML = '<div class="empty-state">⏳ Получение данных со склада...</div>';
-
-      try {
-        const response = await fetch(`${CURRENT_URL}?action=get_loader_orders`);
-        const data = await response.json();
-
-        if (data.success && data.orders) {
-          if (data.orders.length === 0) {
-            container.innerHTML = '<div class="empty-state">🎉 Активных задач на выдачу нет!</div>';
-            return;
-          }
-
-          container.innerHTML = "";
-          data.orders.forEach((order, index) => {
-            const card = document.createElement("div");
-            card.className = "order-card";
-            
-            let html = `
-              <div class="order-header-row">
-                <span class="order-title">Заказ #${index + 1} (${order.category})</span>
-                <span style="font-size: 12px; color: var(--hint-color);">${order.time}</span>
-              </div>
-              <div class="order-meta">
-                <span>📍 Лаборатория ${order.lab}</span>
-              </div>
-              <div class="items-list">
-            `;
-
-            order.items.forEach(item => {
-              html += `
-                <div class="item-row" onclick="toggleLocation(event, this, '${escapeHtml(item.name)}', '${escapeHtml(item.location)}')">
-                  <span class="item-name-text">${escapeHtml(item.name)}</span>
-                  <span class="item-qty">${item.qty} шт.</span>
-                </div>
-              `;
-            });
-
-            html += `</div>`;
-            card.innerHTML = html;
-
-            card.addEventListener("click", (e) => {
-              if (e.target.closest('.item-row')) return;
-              card.classList.toggle("expanded");
-            });
-
-            container.appendChild(card);
-          });
-        } else {
-          container.innerHTML = `<div class="empty-state">❌ Ошибка: ${data.error || "Не удалось загрузить задачи"}</div>`;
-        }
-      } catch (err) {
-        container.innerHTML = '<div class="empty-state">❌ Ошибка сети при загрузке очереди</div>';
-      }
-    }
-
-    function toggleLocation(event, rowElement, originalName, locationText) {
-      event.stopPropagation();
-      
-      const nameSpan = rowElement.querySelector(".item-name-text");
-      
-      if (rowElement.classList.contains("location-view")) {
-        nameSpan.innerText = originalName;
-        rowElement.classList.remove("location-view");
-      } else {
-        nameSpan.innerText = "📍 Место: " + locationText;
-        rowElement.classList.add("location-view");
-      }
-    }
-
-    function escapeHtml(text) {
-      if (!text) return "";
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
   </script>
 </body>
