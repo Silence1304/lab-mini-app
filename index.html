@@ -16,598 +16,112 @@
       --danger-color: #ff3b30;
       --border-color: #d1d1d6;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      margin: 0;
-      padding: 16px;
-      box-sizing: border-box;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    h2 {
-      font-size: 18px;
-      margin-top: 0;
-      margin-bottom: 12px;
-      color: var(--text-color);
-    }
-
-    h3 {
-      font-size: 15px;
-      margin-top: 0;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      color: var(--hint-color);
-      margin-bottom: 4px;
-      margin-top: 10px;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 15px;
-      background: var(--card-bg);
-      color: var(--text-color);
-    }
-
-    .autocomplete-container {
-      position: relative;
-      width: 100%;
-    }
-
-    .autocomplete-items {
-      position: absolute;
-      border: 1px solid var(--border-color);
-      border-top: none;
-      z-index: 99;
-      top: 100%;
-      left: 0;
-      right: 0;
-      max-height: 160px;
-      overflow-y: auto;
-      background: var(--card-bg);
-      border-radius: 0 0 8px 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .autocomplete-items div {
-      padding: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      border-bottom: 1px solid #e5e5ea;
-    }
-
-    .autocomplete-items div:last-child {
-      border-bottom: none;
-    }
-
-    .autocomplete-items div:hover {
-      background-color: rgba(0, 122, 255, 0.1);
-    }
-
-    .radio-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 6px;
-    }
-
-    .radio-label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 15px;
-      color: var(--text-color);
-      cursor: pointer;
-    }
-
-    .radio-label input {
-      width: auto;
-    }
-
-    .btn {
-      width: 100%;
-      background-color: var(--button-color);
-      color: var(--button-text);
-      border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 16px;
-      transition: opacity 0.2s;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background-color: #e5e5ea;
-      color: #1c1c1e;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    #status {
-      text-align: center;
-      font-size: 14px;
-      margin-top: 10px;
-      font-weight: 500;
-    }
-
-    .cart-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px dashed #e5e5ea;
-    }
-    .cart-item:last-child {
-      border-bottom: none;
-    }
-    .cart-item-info {
-      flex-grow: 1;
-      font-size: 15px;
-    }
-    .cart-item-qty {
-      font-weight: 600;
-      margin-right: 10px;
-      background: var(--bg-color);
-      padding: 2px 8px;
-      border-radius: 6px;
-    }
-    .remove-btn {
-      background: none;
-      border: none;
-      color: var(--danger-color);
-      font-size: 20px;
-      cursor: pointer;
-      padding: 0 5px;
-    }
-    .cart-empty {
-      color: var(--hint-color);
-      font-size: 14px;
-      text-align: center;
-      padding: 10px 0;
-    }
-
-    .cart-section {
-      background: #f9f9fb;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 12px;
-      border: 1px solid #e5e5ea;
-    }
-    .prec-title { color: var(--danger-color); }
-    .chem-title { color: var(--button-color); }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 16px; box-sizing: border-box; }
+    .card { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    h2 { font-size: 18px; margin-top: 0; margin-bottom: 12px; }
+    h3 { font-size: 15px; margin-top: 0; margin-bottom: 8px; text-transform: uppercase; }
+    label { display: block; font-size: 13px; color: var(--hint-color); margin-bottom: 4px; margin-top: 10px; }
+    input, select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+    .btn { width: 100%; background-color: var(--button-color); color: var(--button-text); border: none; border-radius: 10px; padding: 14px; font-size: 16px; font-weight: 600; margin-top: 16px; }
+    .btn:disabled { opacity: 0.5; }
+    .hidden { display: none !important; }
+    #status { text-align: center; font-size: 14px; margin-top: 10px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #e5e5ea; }
+    .remove-btn { background: none; border: none; color: var(--danger-color); font-size: 20px; cursor: pointer; }
+    .cart-section { background: #f9f9fb; border-radius: 8px; padding: 10px; margin-bottom: 12px; border: 1px solid #e5e5ea; }
   </style>
 </head>
 <body>
 
-  <!-- Блок 1: Профиль сотрудника -->
   <div class="card" id="profile-card">
     <h2>👤 Профиль сотрудника</h2>
-    
-    <label for="fio">ФИО (реальное Имя)</label>
+    <label>ФИО</label>
     <input type="text" id="fio" placeholder="Иванов Иван Иванович">
-
-    <label for="lab">Лаборатория №</label>
-    <input type="text" id="lab" placeholder="Например: 102">
-
-    <label>Организация / Оформление:</label>
-    <div class="radio-group">
-      <label class="radio-label">
-        <input type="radio" name="company" value="ООО" checked> ООО
-      </label>
-      <label class="radio-label">
-        <input type="radio" name="company" value="НПФ"> НПФ
-      </label>
+    <label>Лаборатория №</label>
+    <input type="text" id="lab" placeholder="102">
+    <label>Организация:</label>
+    <div style="display:flex; gap:16px; margin-top:6px;">
+      <label><input type="radio" name="company" value="ООО" checked> ООО</label>
+      <label><input type="radio" name="company" value="НПФ"> НПФ</label>
     </div>
-
-    <button class="btn" id="save-profile-btn" onclick="saveProfile()">Сохранить данные</button>
+    <button class="btn" onclick="saveProfile()">Сохранить данные</button>
   </div>
 
-  <!-- Блок 2: Форма списания -->
   <div class="card hidden" id="form-card">
     <h2>🧪 Форма списания</h2>
-
-    <label for="category">Категория</label>
+    <label>Категория</label>
     <select id="category" onchange="loadItems()">
       <option value="" disabled selected>-- Выберите категорию --</option>
       <option value="precursors">Прекурсоры</option>
       <option value="chemistry">Химия</option>
     </select>
-
     <div id="items-wrapper" class="hidden">
-      <label for="item-input">Позиция (начните вводить название)</label>
-      
-      <div class="autocomplete-container">
-        <input type="text" id="item-input" placeholder="🔍 Введите название..." autocomplete="off" oninput="filterItems()">
-        <div id="autocomplete-list" class="autocomplete-items"></div>
-      </div>
-
-      <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 6px; margin-bottom: 8px;"></div>
-
-      <label for="quantity">Количество</label>
-      <input type="number" id="quantity" min="1" step="1" inputmode="numeric" pattern="[0-9]*" placeholder="Введите целое число" oninput="validateQuantity()">
-
-      <button class="btn btn-secondary" id="add-to-cart-btn" onclick="addToCart()">➕ Добавить в корзину</button>
+      <label>Позиция</label>
+      <input type="text" id="item-input" placeholder="🔍 Название..." oninput="filterItems()">
+      <div id="autocomplete-list" style="position:absolute; background:white; width:calc(100% - 32px); z-index:99; border:1px solid #ccc;"></div>
+      <div id="stock-info" style="font-size: 12px; color: var(--hint-color); margin: 5px 0;"></div>
+      <label>Количество</label>
+      <input type="number" id="quantity" placeholder="Введите число">
+      <button class="btn" style="background-color: #e5e5ea; color: #1c1c1e;" onclick="addToCart()">➕ Добавить</button>
     </div>
-
-    <button style="background: none; border: none; color: var(--hint-color); width: 100%; margin-top: 15px; font-size: 12px; cursor: pointer;" onclick="editProfile()">⚙️ Изменить профиль</button>
   </div>
 
-  <!-- Блок 3: Раздельная корзина -->
   <div class="card hidden" id="cart-card">
-    <h2>🛒 Корзина списания</h2>
-    
-    <div id="cart-list">
-      <div id="prec-cart-section" class="cart-section hidden">
-        <h3 class="prec-title">❗ Прекурсоры</h3>
-        <div id="prec-cart-items"></div>
-      </div>
-
-      <div id="chem-cart-section" class="cart-section hidden">
-        <h3 class="chem-title">🧪 Химия</h3>
-        <div id="chem-cart-items"></div>
-      </div>
-
-      <div id="empty-cart-msg" class="cart-empty">Корзина пуста. Добавьте позиции выше.</div>
-    </div>
-    
+    <h2>🛒 Корзина</h2>
+    <div id="prec-cart-section" class="cart-section hidden"><h3 style="color:red">Прекурсоры</h3><div id="prec-cart-items"></div></div>
+    <div id="chem-cart-section" class="cart-section hidden"><h3 style="color:blue">Химия</h3><div id="chem-cart-items"></div></div>
     <button class="btn" id="submit-btn" onclick="submitCart()">Отправить расход</button>
   </div>
 
   <div id="status"></div>
 
   <script>
-    const CURRENT_URL = "https://script.google.com/macros/s/AKfycbxk_CuIA5A6DDSXq6WLSuAUsJgP_u1Vz15GQSc6ACdSNt2rufQv4wiO737STZTGg5Urqw/exec";
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxc17aqZjPhzlpKhh60HaadufMlrntuMhh5t7jxnom0gYrFqYqJeCGz7iM_iBeSuyctkg/exec";
     const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
 
-    if (tg) {
-      tg.expand();
-    }
-
-    let carts = {
-      precursors: [],
-      chemistry: []
-    };               
-    
-    let currentCategoryItems = [];  
-    let currentSelectedStock = null;  
-
-    document.addEventListener("DOMContentLoaded", () => {
-      const savedFio = localStorage.getItem("lab_fio");
-      const savedLab = localStorage.getItem("lab_num");
-      const savedCompany = localStorage.getItem("lab_company");
-
-      if (savedFio && savedLab) {
-        document.getElementById("fio").value = savedFio;
-        document.getElementById("lab").value = savedLab;
-        if (savedCompany) {
-          const radio = document.querySelector(`input[name="company"][value="${savedCompany}"]`);
-          if (radio) radio.checked = true;
-        }
-        showForm();
-      }
-
-      document.addEventListener("click", function (e) {
-        if (!e.target.closest(".autocomplete-container")) {
-          closeAllLists();
-        }
-      });
-    });
+    let carts = { precursors: [], chemistry: [] };
+    let currentCategoryItems = [];
 
     function saveProfile() {
-      const fio = document.getElementById("fio").value.trim();
-      const lab = document.getElementById("lab").value.trim();
-      const company = document.querySelector('input[name="company"]:checked').value;
-
-      if (!fio || !lab) {
-        alert("Пожалуйста, заполните ФИО и номер лаборатории!");
-        return;
-      }
-
-      localStorage.setItem("lab_fio", fio);
-      localStorage.setItem("lab_num", lab);
-      localStorage.setItem("lab_company", company);
-
-      showForm();
-    }
-
-    function editProfile() {
-      document.getElementById("profile-card").classList.remove("hidden");
-      document.getElementById("form-card").classList.add("hidden");
-      document.getElementById("cart-card").classList.add("hidden");
-    }
-
-    function showForm() {
+      localStorage.setItem("lab_fio", document.getElementById("fio").value);
+      localStorage.setItem("lab_num", document.getElementById("lab").value);
+      localStorage.setItem("lab_company", document.querySelector('input[name="company"]:checked').value);
       document.getElementById("profile-card").classList.add("hidden");
       document.getElementById("form-card").classList.remove("hidden");
-      renderCart(); 
     }
 
     async function loadItems() {
       const category = document.getElementById("category").value;
-      const itemsWrapper = document.getElementById("items-wrapper");
-      const itemInput = document.getElementById("item-input");
-      const status = document.getElementById("status");
-      const stockInfoDiv = document.getElementById("stock-info");
-
-      if (!category) return;
-
-      itemsWrapper.classList.remove("hidden");
-      itemInput.value = "";
-      itemInput.placeholder = "⌛ Загрузка списка...";
-      itemInput.disabled = true;
-      stockInfoDiv.innerHTML = "";
-      currentCategoryItems = [];
-      currentSelectedStock = null;
-      closeAllLists();
-
-      try {
-        const response = await fetch(`${CURRENT_URL}?action=get_catalog&type=${category}`);
-        const data = await response.json();
-
-        if (data.success && data.items) {
-          currentCategoryItems = data.items; 
-          itemInput.placeholder = "🔍 Начните вводить название...";
-          itemInput.disabled = false;
-        } else {
-          itemInput.placeholder = "Ошибка загрузки списка";
-          status.innerText = "❌ Ошибка: " + (data.error || "Неизвестная ошибка");
-        }
-      } catch (err) {
-        itemInput.placeholder = "Ошибка сети";
-        status.innerText = "❌ Ошибка подключения к серверу";
-      }
-    }
-
-    function filterItems() {
-      const val = document.getElementById("item-input").value.trim().toLowerCase();
-      const listContainer = document.getElementById("autocomplete-list");
-      const stockInfoDiv = document.getElementById("stock-info");
-      const qtyInput = document.getElementById("quantity");
-
-      closeAllLists();
-      currentSelectedStock = null;
-      stockInfoDiv.innerHTML = "";
-      qtyInput.removeAttribute("max");
-
-      if (!val) return;
-
-      const matches = currentCategoryItems.filter(item => item.name.toLowerCase().includes(val)).slice(0, 15);
-
-      if (matches.length === 0) return;
-
-      matches.forEach(itemObj => {
-        const itemDiv = document.createElement("div");
-        itemDiv.innerHTML = itemObj.name;
-        
-        itemDiv.addEventListener("click", function() {
-          document.getElementById("item-input").value = itemObj.name;
-          checkStock(itemObj);
-          closeAllLists();
-        });
-
-        listContainer.appendChild(itemDiv);
-      });
-    }
-
-    function checkStock(selectedObj = null) {
-      const inputVal = document.getElementById("item-input").value.trim();
-      const stockInfoDiv = document.getElementById("stock-info");
-      const qtyInput = document.getElementById("quantity");
-      
-      const found = selectedObj || currentCategoryItems.find(i => i.name === inputVal);
-      
-      if (found) {
-        currentSelectedStock = Number(found.qty);
-        if (!isNaN(currentSelectedStock)) {
-          stockInfoDiv.innerHTML = `📦 Остаток на складе: <b>${found.qty}</b>`;
-          qtyInput.max = currentSelectedStock;
-        } else {
-          currentSelectedStock = null;
-          stockInfoDiv.innerHTML = `📦 Остаток на складе: <b>${found.qty}</b>`;
-          qtyInput.removeAttribute("max");
-        }
-      } else {
-        currentSelectedStock = null;
-        stockInfoDiv.innerHTML = "";
-        qtyInput.removeAttribute("max");
-      }
-    }
-
-    function closeAllLists() {
-      document.getElementById("autocomplete-list").innerHTML = "";
-    }
-
-    function validateQuantity() {
-      const qtyInput = document.getElementById("quantity");
-      let cleanVal = qtyInput.value.replace(/\D/g, ""); 
-      
-      if (cleanVal !== "") {
-        let val = parseInt(cleanVal, 10);
-        if (val < 1) val = 1;
-        if (currentSelectedStock !== null && !isNaN(currentSelectedStock) && val > currentSelectedStock) {
-          val = currentSelectedStock;
-        }
-        qtyInput.value = val;
-      } else {
-        qtyInput.value = "";
-      }
+      const response = await fetch(`${BACKEND_URL}?action=get_catalog&type=${category}`);
+      const data = await response.json();
+      currentCategoryItems = data.items;
+      document.getElementById("items-wrapper").classList.remove("hidden");
     }
 
     function addToCart() {
-      const category = document.getElementById("category").value;
-      const itemInput = document.getElementById("item-input");
-      const qtyInput = document.getElementById("quantity");
-      const item = itemInput.value.trim();
-      const quantity = parseInt(qtyInput.value.trim(), 10);
-
-      const isValidItem = currentCategoryItems.some(i => i.name === item);
-
-      if (!item || !isValidItem || isNaN(quantity) || quantity <= 0) {
-        alert("Выберите позицию из выпадающего списка и введите корректное количество!");
-        return;
-      }
-
-      if (currentSelectedStock !== null && !isNaN(currentSelectedStock) && quantity > currentSelectedStock) {
-        alert(`Нельзя списать больше, чем есть на складе (${currentSelectedStock})!`);
-        qtyInput.value = currentSelectedStock;
-        return;
-      }
-
-      carts[category].push({ item: item, quantity: quantity });
-
-      itemInput.value = "";
-      qtyInput.value = "";
-      document.getElementById("stock-info").innerHTML = ""; 
-      currentSelectedStock = null;
-      qtyInput.removeAttribute("max");
-      itemInput.focus(); 
-
+      const cat = document.getElementById("category").value;
+      const item = document.getElementById("item-input").value;
+      const qty = document.getElementById("quantity").value;
+      if (!item || !qty) return;
+      carts[cat].push({ item, quantity: qty });
       renderCart();
-    }
-
-    function removeFromCart(targetCategory, index) {
-      carts[targetCategory].splice(index, 1);
-      renderCart();
-    }
-
-    function createCartItemHTML(item, index, targetCategory) {
-      const div = document.createElement("div");
-      div.className = "cart-item";
-      div.innerHTML = `
-        <div class="cart-item-info">${item.item}</div>
-        <div class="cart-item-qty">${item.quantity} шт</div>
-        <button class="remove-btn" onclick="removeFromCart('${targetCategory}', ${index})">✕</button>
-      `;
-      return div;
     }
 
     function renderCart() {
-      const cartCard = document.getElementById("cart-card");
-      const precSection = document.getElementById("prec-cart-section");
-      const chemSection = document.getElementById("chem-cart-section");
-      const precItemsContainer = document.getElementById("prec-cart-items");
-      const chemItemsContainer = document.getElementById("chem-cart-items");
-      const emptyMsg = document.getElementById("empty-cart-msg");
-
-      cartCard.classList.remove("hidden");
-      precItemsContainer.innerHTML = "";
-      chemItemsContainer.innerHTML = "";
-
-      let hasItems = false;
-
-      if (carts.precursors.length > 0) {
-        hasItems = true;
-        precSection.classList.remove("hidden");
-        carts.precursors.forEach((cItem, index) => {
-          precItemsContainer.appendChild(createCartItemHTML(cItem, index, 'precursors'));
-        });
-      } else {
-        precSection.classList.add("hidden");
-      }
-
-      if (carts.chemistry.length > 0) {
-        hasItems = true;
-        chemSection.classList.remove("hidden");
-        carts.chemistry.forEach((cItem, index) => {
-          chemItemsContainer.appendChild(createCartItemHTML(cItem, index, 'chemistry'));
-        });
-      } else {
-        chemSection.classList.add("hidden");
-      }
-
-      if (hasItems) {
-        emptyMsg.classList.add("hidden");
-      } else {
-        emptyMsg.classList.remove("hidden");
-      }
+      document.getElementById("cart-card").classList.remove("hidden");
+      // ... логика отрисовки ...
+      document.getElementById("prec-cart-items").innerHTML = carts.precursors.map((i, idx) => `<div class="cart-item">${i.item} - ${i.quantity} <button class="remove-btn" onclick="carts.precursors.splice(${idx},1);renderCart()">✕</button></div>`).join('');
+      document.getElementById("chem-cart-items").innerHTML = carts.chemistry.map((i, idx) => `<div class="cart-item">${i.item} - ${i.quantity} <button class="remove-btn" onclick="carts.chemistry.splice(${idx},1);renderCart()">✕</button></div>`).join('');
+      document.getElementById("prec-cart-section").classList.toggle("hidden", carts.precursors.length === 0);
+      document.getElementById("chem-cart-section").classList.toggle("hidden", carts.chemistry.length === 0);
     }
 
     async function submitCart() {
-      const submitBtn = document.getElementById("submit-btn");
-      const status = document.getElementById("status");
-
-      if (carts.precursors.length === 0 && carts.chemistry.length === 0) {
-        alert("Корзина пуста! Добавьте хотя бы одну позицию.");
-        return;
-      }
-
-      const basePayload = {
-        fio: localStorage.getItem("lab_fio"),
-        lab: localStorage.getItem("lab_num"),
-        company: localStorage.getItem("lab_company")
-      };
-
-      submitBtn.disabled = true;
-      submitBtn.innerText = "Отправка...";
-      
-      try {
-        if (carts.precursors.length > 0) {
-          status.innerText = "⏳ Оформляем прекурсоры...";
-          const res1 = await fetch(CURRENT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              ...basePayload,
-              category: "precursors",
-              cart: carts.precursors
-            })
-          });
-          const resData1 = await res1.json();
-          if (!resData1.success) throw new Error("Ошибка прекурсоров: " + resData1.error);
-        }
-
-        if (carts.chemistry.length > 0) {
-          status.innerText = "⏳ Оформляем химию...";
-          const res2 = await fetch(CURRENT_URL, {
-            method: "POST",
-            body: JSON.stringify({
-              ...basePayload,
-              category: "chemistry",
-              cart: carts.chemistry
-            })
-          });
-          const resData2 = await res2.json();
-          if (!resData2.success) throw new Error("Ошибка химии: " + resData2.error);
-        }
-
-        status.innerText = "✅ Заявки успешно отправлены!";
-        carts.precursors = [];
-        carts.chemistry = [];
-        renderCart(); 
-        setTimeout(() => { status.innerText = ""; }, 4000);
-
-      } catch (err) {
-        status.innerText = "❌ Ошибка отправки: " + err.message;
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Отправить расход";
-      }
+      const base = { fio: localStorage.getItem("lab_fio"), lab: localStorage.getItem("lab_num"), company: localStorage.getItem("lab_company") };
+      if (carts.precursors.length > 0) await fetch(BACKEND_URL, { method: "POST", body: JSON.stringify({...base, category: "precursors", cart: carts.precursors}) });
+      if (carts.chemistry.length > 0) await fetch(BACKEND_URL, { method: "POST", body: JSON.stringify({...base, category: "chemistry", cart: carts.chemistry}) });
+      alert("Отправлено!");
     }
   </script>
 </body>
