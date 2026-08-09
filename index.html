@@ -41,6 +41,14 @@
       color: var(--text-color);
     }
 
+    h3 {
+      font-size: 15px;
+      margin-top: 0;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     label {
       display: block;
       font-size: 13px;
@@ -60,7 +68,6 @@
       color: var(--text-color);
     }
 
-    /* Контейнер для кастомного поиска с выпадающим списком */
     .autocomplete-container {
       position: relative;
       width: 100%;
@@ -74,7 +81,7 @@
       top: 100%;
       left: 0;
       right: 0;
-      max-height: 160px; /* Ограничиваем высоту, чтобы не перекрывать экран */
+      max-height: 160px;
       overflow-y: auto;
       background: var(--card-bg);
       border-radius: 0 0 8px 8px;
@@ -150,13 +157,12 @@
       font-weight: 500;
     }
 
-    /* Стили для корзины */
     .cart-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 0;
-      border-bottom: 1px solid #e5e5ea;
+      border-bottom: 1px dashed #e5e5ea;
     }
     .cart-item:last-child {
       border-bottom: none;
@@ -168,6 +174,9 @@
     .cart-item-qty {
       font-weight: 600;
       margin-right: 10px;
+      background: var(--bg-color);
+      padding: 2px 8px;
+      border-radius: 6px;
     }
     .remove-btn {
       background: none;
@@ -183,6 +192,17 @@
       text-align: center;
       padding: 10px 0;
     }
+
+    /* Декорации для раздельных корзин */
+    .cart-section {
+      background: #f9f9fb;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e5ea;
+    }
+    .prec-title { color: var(--danger-color); }
+    .chem-title { color: var(--button-color); }
   </style>
 </head>
 <body>
@@ -191,7 +211,7 @@
   <div class="card" id="profile-card">
     <h2>👤 Профиль сотрудника</h2>
     
-    <label for="fio">ФИО (реальноеИмя)</label>
+    <label for="fio">ФИО (реальное Имя)</label>
     <input type="text" id="fio" placeholder="Иванов Иван Иванович">
 
     <label for="lab">Лаборатория №</label>
@@ -224,13 +244,11 @@
     <div id="items-wrapper" class="hidden">
       <label for="item-input">Позиция (начните вводить название)</label>
       
-      <!-- Кастомный блок автодополнения вместо datalist -->
       <div class="autocomplete-container">
         <input type="text" id="item-input" placeholder="🔍 Введите название..." autocomplete="off" oninput="filterItems()">
         <div id="autocomplete-list" class="autocomplete-items"></div>
       </div>
 
-      <!-- Инфо об остатке -->
       <div id="stock-info" style="font-size: 13px; color: var(--hint-color); margin-top: 6px; margin-bottom: 8px;"></div>
 
       <label for="quantity">Количество</label>
@@ -242,18 +260,33 @@
     <button style="background: none; border: none; color: var(--hint-color); width: 100%; margin-top: 15px; font-size: 12px; cursor: pointer;" onclick="editProfile()">⚙️ Изменить профиль</button>
   </div>
 
-  <!-- Блок 3: Корзина -->
+  <!-- Блок 3: Раздельная корзина -->
   <div class="card hidden" id="cart-card">
     <h2>🛒 Корзина списания</h2>
+    
     <div id="cart-list">
-      <div class="cart-empty">Корзина пуста. Добавьте позиции выше.</div>
+      <!-- Корзина Прекурсоров -->
+      <div id="prec-cart-section" class="cart-section hidden">
+        <h3 class="prec-title">❗ Прекурсоры</h3>
+        <div id="prec-cart-items"></div>
+      </div>
+
+      <!-- Корзина Химии -->
+      <div id="chem-cart-section" class="cart-section hidden">
+        <h3 class="chem-title">🧪 Химия</h3>
+        <div id="chem-cart-items"></div>
+      </div>
+
+      <div id="empty-cart-msg" class="cart-empty">Корзина пуста. Добавьте позиции выше.</div>
     </div>
+    
     <button class="btn" id="submit-btn" onclick="submitCart()">Отправить расход</button>
   </div>
 
   <div id="status"></div>
 
   <script>
+    // URL твоего развертывания
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxc17aqZjPhzlpKhh60HaadufMlrntuMhh5t7jxnom0gYrFqYqJeCGz7iM_iBeSuyctkg/exec";
     const tg = window.Telegram?.WebApp;
 
@@ -261,8 +294,13 @@
       tg.expand();
     }
 
-    let cart = [];                    
-    let currentCategoryItems = [];    
+    // ДВЕ НЕЗАВИСИМЫЕ КОРЗИНЫ
+    let carts = {
+      precursors: [],
+      chemistry: []
+    };                  
+    
+    let currentCategoryItems = [];  
     let currentSelectedStock = null;  
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -274,12 +312,12 @@
         document.getElementById("fio").value = savedFio;
         document.getElementById("lab").value = savedLab;
         if (savedCompany) {
-          document.querySelector(`input[name="company"][value="${savedCompany}"]`).checked = true;
+          const radio = document.querySelector(`input[name="company"][value="${savedCompany}"]`);
+          if (radio) radio.checked = true;
         }
         showForm();
       }
 
-      // Закрытие выпадающего списка при клике вне поля
       document.addEventListener("click", function (e) {
         if (!e.target.closest(".autocomplete-container")) {
           closeAllLists();
@@ -316,7 +354,6 @@
       renderCart(); 
     }
 
-    // Загрузка реактивов с бэкенда
     async function loadItems() {
       const category = document.getElementById("category").value;
       const itemsWrapper = document.getElementById("items-wrapper");
@@ -336,7 +373,7 @@
       closeAllLists();
 
       try {
-        // 👇 ВОТ ЗДЕСЬ ИСПРАВЛЕННАЯ СТРОЧКА 👇
+        // Запрашиваем каталог с параметром action=get_catalog
         const response = await fetch(`${BACKEND_URL}?action=get_catalog&type=${category}`);
         const data = await response.json();
 
@@ -353,8 +390,7 @@
         status.innerText = "❌ Ошибка подключения к серверу";
       }
     }
-    
-    // Фильтрация и вывод кастомного выпадающего списка
+
     function filterItems() {
       const val = document.getElementById("item-input").value.trim().toLowerCase();
       const listContainer = document.getElementById("autocomplete-list");
@@ -362,22 +398,18 @@
       const qtyInput = document.getElementById("quantity");
 
       closeAllLists();
-      
-      // Сбрасываем выбранный остаток при изменении текста, пока не будет точного совпадения
       currentSelectedStock = null;
       stockInfoDiv.innerHTML = "";
       qtyInput.removeAttribute("max");
 
       if (!val) return;
 
-      // Ищем совпадения (показываем максимум 15 штук, чтобы не засорять экран)
       const matches = currentCategoryItems.filter(item => item.name.toLowerCase().includes(val)).slice(0, 15);
 
       if (matches.length === 0) return;
 
       matches.forEach(itemObj => {
         const itemDiv = document.createElement("div");
-        // Подсвечиваем текст совпадения (опционально) или просто выводим имя
         itemDiv.innerHTML = itemObj.name;
         
         itemDiv.addEventListener("click", function() {
@@ -390,7 +422,6 @@
       });
     }
 
-    // Проверка точного совпадения для остатка
     function checkStock(selectedObj = null) {
       const inputVal = document.getElementById("item-input").value.trim();
       const stockInfoDiv = document.getElementById("stock-info");
@@ -416,38 +447,32 @@
     }
 
     function closeAllLists() {
-      const listContainer = document.getElementById("autocomplete-list");
-      listContainer.innerHTML = "";
+      document.getElementById("autocomplete-list").innerHTML = "";
     }
 
-    // Контроль ввода: только натуральные целые числа и не больше остатка
     function validateQuantity() {
       const qtyInput = document.getElementById("quantity");
       let cleanVal = qtyInput.value.replace(/\D/g, ""); 
       
       if (cleanVal !== "") {
         let val = parseInt(cleanVal, 10);
-        
         if (val < 1) val = 1;
-
         if (currentSelectedStock !== null && !isNaN(currentSelectedStock) && val > currentSelectedStock) {
           val = currentSelectedStock;
         }
-        
         qtyInput.value = val;
       } else {
         qtyInput.value = "";
       }
     }
 
-    // Добавление позиции в корзину
     function addToCart() {
+      const category = document.getElementById("category").value;
       const itemInput = document.getElementById("item-input");
       const qtyInput = document.getElementById("quantity");
       const item = itemInput.value.trim();
       const quantity = parseInt(qtyInput.value.trim(), 10);
 
-      // Проверяем, есть ли такое название в базе
       const isValidItem = currentCategoryItems.some(i => i.name === item);
 
       if (!item || !isValidItem || isNaN(quantity) || quantity <= 0) {
@@ -461,7 +486,8 @@
         return;
       }
 
-      cart.push({ item: item, quantity: quantity });
+      // Добавляем позицию в соответствующий массив
+      carts[category].push({ item: item, quantity: quantity });
 
       itemInput.value = "";
       qtyInput.value = "";
@@ -473,74 +499,126 @@
       renderCart();
     }
 
-    function removeFromCart(index) {
-      cart.splice(index, 1);
+    function removeFromCart(targetCategory, index) {
+      carts[targetCategory].splice(index, 1);
       renderCart();
+    }
+
+    function createCartItemHTML(item, index, targetCategory) {
+      const div = document.createElement("div");
+      div.className = "cart-item";
+      div.innerHTML = `
+        <div class="cart-item-info">${item.item}</div>
+        <div class="cart-item-qty">${item.quantity} шт</div>
+        <button class="remove-btn" onclick="removeFromCart('${targetCategory}', ${index})">✕</button>
+      `;
+      return div;
     }
 
     function renderCart() {
       const cartCard = document.getElementById("cart-card");
-      const cartList = document.getElementById("cart-list");
       
-      cartCard.classList.remove("hidden");
+      const precSection = document.getElementById("prec-cart-section");
+      const chemSection = document.getElementById("chem-cart-section");
+      
+      const precItemsContainer = document.getElementById("prec-cart-items");
+      const chemItemsContainer = document.getElementById("chem-cart-items");
+      const emptyMsg = document.getElementById("empty-cart-msg");
 
-      if (cart.length === 0) {
-        cartList.innerHTML = '<div class="cart-empty">Корзина пуста. Добавьте позиции выше.</div>';
-      } else {
-        cartList.innerHTML = '';
-        cart.forEach((cartItem, index) => {
-          const div = document.createElement("div");
-          div.className = "cart-item";
-          div.innerHTML = `
-            <div class="cart-item-info">${cartItem.item}</div>
-            <div class="cart-item-qty">${cartItem.quantity}</div>
-            <button class="remove-btn" onclick="removeFromCart(${index})">✕</button>
-          `;
-          cartList.appendChild(div);
+      cartCard.classList.remove("hidden");
+      precItemsContainer.innerHTML = "";
+      chemItemsContainer.innerHTML = "";
+
+      let hasItems = false;
+
+      // Отрисовка Прекурсоров
+      if (carts.precursors.length > 0) {
+        hasItems = true;
+        precSection.classList.remove("hidden");
+        carts.precursors.forEach((cItem, index) => {
+          precItemsContainer.appendChild(createCartItemHTML(cItem, index, 'precursors'));
         });
+      } else {
+        precSection.classList.add("hidden");
+      }
+
+      // Отрисовка Химии
+      if (carts.chemistry.length > 0) {
+        hasItems = true;
+        chemSection.classList.remove("hidden");
+        carts.chemistry.forEach((cItem, index) => {
+          chemItemsContainer.appendChild(createCartItemHTML(cItem, index, 'chemistry'));
+        });
+      } else {
+        chemSection.classList.add("hidden");
+      }
+
+      // Сообщение о пустой корзине
+      if (hasItems) {
+        emptyMsg.classList.add("hidden");
+      } else {
+        emptyMsg.classList.remove("hidden");
       }
     }
 
+    // Отправка данных на сервер по очереди
     async function submitCart() {
-      const category = document.getElementById("category").value;
       const submitBtn = document.getElementById("submit-btn");
       const status = document.getElementById("status");
 
-      if (cart.length === 0) {
+      if (carts.precursors.length === 0 && carts.chemistry.length === 0) {
         alert("Корзина пуста! Добавьте хотя бы одну позицию.");
         return;
       }
 
-      const payload = {
+      const basePayload = {
         fio: localStorage.getItem("lab_fio"),
         lab: localStorage.getItem("lab_num"),
-        company: localStorage.getItem("lab_company"),
-        category: category,
-        cart: cart 
+        company: localStorage.getItem("lab_company")
       };
 
       submitBtn.disabled = true;
       submitBtn.innerText = "Отправка...";
-      status.innerText = "⏳ Запись в таблицу...";
-
+      
       try {
-        const response = await fetch(BACKEND_URL, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-
-        const resData = await response.json();
-
-        if (resData.success) {
-          status.innerText = "✅ Успешно записано в «Расход»!";
-          cart = []; 
-          renderCart(); 
-          setTimeout(() => { status.innerText = ""; }, 4000);
-        } else {
-          status.innerText = "❌ Ошибка записи: " + resData.error;
+        // 1. Отправляем прекурсоры (если есть)
+        if (carts.precursors.length > 0) {
+          status.innerText = "⏳ Оформляем прекурсоры...";
+          const res1 = await fetch(BACKEND_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              ...basePayload,
+              category: "precursors",
+              cart: carts.precursors
+            })
+          });
+          const resData1 = await res1.json();
+          if (!resData1.success) throw new Error("Ошибка прекурсоров: " + resData1.error);
         }
+
+        // 2. Отправляем химию (если есть)
+        if (carts.chemistry.length > 0) {
+          status.innerText = "⏳ Оформляем химию...";
+          const res2 = await fetch(BACKEND_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              ...basePayload,
+              category: "chemistry",
+              cart: carts.chemistry
+            })
+          });
+          const resData2 = await res2.json();
+          if (!resData2.success) throw new Error("Ошибка химии: " + resData2.error);
+        }
+
+        status.innerText = "✅ Заявки успешно отправлены!";
+        carts.precursors = [];
+        carts.chemistry = [];
+        renderCart(); 
+        setTimeout(() => { status.innerText = ""; }, 4000);
+
       } catch (err) {
-        status.innerText = "❌ Ошибка отправки данных";
+        status.innerText = "❌ Ошибка отправки: " + err.message;
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerText = "Отправить расход";
