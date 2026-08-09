@@ -336,7 +336,8 @@
       closeAllLists();
 
       try {
-        const response = await fetch(`${BACKEND_URL}?type=${category}`);
+        // 👇 ВОТ ЗДЕСЬ ИСПРАВЛЕННАЯ СТРОЧКА 👇
+        const response = await fetch(`${BACKEND_URL}?action=get_catalog&type=${category}`);
         const data = await response.json();
 
         if (data.success && data.items) {
@@ -352,7 +353,7 @@
         status.innerText = "❌ Ошибка подключения к серверу";
       }
     }
-
+    
     // Фильтрация и вывод кастомного выпадающего списка
     function filterItems() {
       const val = document.getElementById("item-input").value.trim().toLowerCase();
