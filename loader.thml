@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Очередь сборки</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #eef2f5;
+      margin: 0;
+      padding: 12px;
+      color: #222;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a2a3a;
+    }
+    .refresh-btn {
+      background-color: #0088cc;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    .refresh-btn:active { background-color: #006699; transform: translateY(1px); }
+    
+    .card {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+      border-left: 6px solid #f39c12; 
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    /* Стиль для активной (раскрытой) карточки */
+    .card.active {
+      border-left: 6px solid #27ae60;
+      background: #fdfdfd;
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .item-info {
+      flex-grow: 1;
+      padding-right: 10px;
+    }
+    .item-name {
+      font-size: 19px;
+      font-weight: 800;
+      color: #111;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .arrow {
+      font-size: 14px;
+      color: #999;
+      transition: transform 0.3s ease;
+    }
+    .card.active .arrow {
+      transform: rotate(180deg);
+      color: #27ae60;
+    }
+    
+    .item-qty {
+      font-size: 20px;
+      font-weight: 900;
+      color: #d35400;
+      background: #fdf2e9;
+      padding: 6px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+    
+    /* Скрытый по умолчанию блок с местом хранения */
+    .location-details {
+      display: none;
+      margin-top: 15px;
+      border-top: 1px dashed #ddd;
+      padding-top: 12px;
+    }
+    .location-box {
+      background-color: #e8f4fd;
+      border: 2px solid #bce0fd;
+      color: #005580;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #7f8c8d;
+      font-weight: 600;
+    }
+    .loading {
+      text-align: center;
+      font-size: 16px;
+      color: #555;
+      margin-top: 40px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <div class="title">📋 Очередь:</div>
+    <button class="refresh-btn" onclick="loadOrders()">🔄 Обновить</button>
+  </div>
+
+  <div id="loadingText" class="loading">Загрузка позиций...</div>
+  <div id="ordersContainer"></div>
+
+  <script>
+    window.onload = loadOrders;
+
+    function loadOrders() {
+      const container = document.getElementById('ordersContainer');
+      const loading = document.getElementById('loadingText');
+      
+      container.innerHTML = '';
+      loading.style.display = 'block';
+      loading.innerText = 'Синхронизация со складом...';
+
+      fetch(window.location.href.split('?')[0] + '?action=get_loader_orders')
+        .then(response => response.json())
+        .then(data => {
+          loading.style.display = 'none';
+          if (data.success) {
+            renderOrders(data.orders);
+          } else {
+            loading.style.display = 'block';
+            loading.innerText = 'Ошибка: ' + data.error;
+          }
+        })
+        .catch(err => {
+          loading.style.display = 'block';
+          loading.innerText = 'Ошибка связи с базой';
+        });
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('ordersContainer');
+      container.innerHTML = '';
+
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="loading">Нет активных заказов 🎉</div>';
+        return;
+      }
+
+      orders.forEach(order => {
+        let formattedLoc = order.location.replace(/;/g, '<br>📍 ').replace(/\//g, '<br>📍 ');
+
+        container.innerHTML += `
+          <div class="card" onclick="toggleCard(this)">
+            <div class="card-header">
+              <div class="item-info">
+                <div class="item-name">
+                  ${order.name} <span class="arrow">▼</span>
+                </div>
+                <div class="card-footer">
+                  <span>${order.lab}</span>
+                  <span>🕒 ${order.time}</span>
+                </div>
+              </div>
+              <div class="item-qty">${order.qty}</div>
+            </div>
+            
+            <div class="location-details">
+              <div class="location-box">
+                📍 ${formattedLoc}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Функция раскрытия карточки по клику
+    function toggleCard(cardElement) {
+      const details = cardElement.querySelector('.location-details');
+      const isHidden = window.getComputedStyle(details).display === 'none';
+      
+      if (isHidden) {
+        details.style.display = 'block';
+        cardElement.classList.add('active');
+      } else {
+        details.style.display = 'none';
+        cardElement.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
